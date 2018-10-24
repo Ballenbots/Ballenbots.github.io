@@ -50,13 +50,14 @@ function calcAngle(x1, y1, x2, y2) {
 
 //returns velocity, used to calculate angles of new balls
 function calcVel(x1, y1, x2, y2){
-	var vel = Math.hypot(x2-x1, y2-y1)/100;
+	var vel = Math.hypot(x2-x1, y2-y1)/150;
 	return vel;
 }
 
 //calculates x and y movement based on angle and velocity
 function angleToMove(angle, velocity, i) {
 	angle = fixAngle(angle);
+	if(velBalls[i]>0){velBalls[i] -= 0.1;}
 	xMoveBalls[i] = Math.cos(angle/180*pi) * velocity;
 	yMoveBalls[i] = -Math.sin(angle/180*pi) * velocity;
 }
@@ -187,11 +188,10 @@ function draw (){
 	//detect collision
 	for (var i = 0; i < xPosBalls.length; i++) {
 		//edge collision
-		if(xPosBalls[i] < radiusBalls[i]){angleBalls[i] = 180 - angleBalls[i];}
-		else if(xPosBalls[i] > width - radiusBalls[i]){angleBalls[i] = 180 - angleBalls[i];}
-		else if(yPosBalls[i] < radiusBalls[i]){angleBalls[i] *= -1;}
-		else if(yPosBalls[i] > height - radiusBalls[i]){angleBalls[i] *= -1;}
-		angleToMove(angleBalls[i], velBalls[i], i);
+		if(xPosBalls[i] < radiusBalls[i]){angleBalls[i] = 180 - angleBalls[i]; angleToMove(angleBalls[i], velBalls[i], i);}
+		else if(xPosBalls[i] > width - radiusBalls[i]){angleBalls[i] = 180 - angleBalls[i]; angleToMove(angleBalls[i], velBalls[i], i);}
+		else if(yPosBalls[i] < radiusBalls[i]){angleBalls[i] *= -1; angleToMove(angleBalls[i], velBalls[i], i);}
+		else if(yPosBalls[i] > height - radiusBalls[i]){angleBalls[i] *= -1; angleToMove(angleBalls[i], velBalls[i], i);}
 
 		//wall collision
 		for (var z = 0; z < xPosWall1.length; z++) {
@@ -220,6 +220,9 @@ function draw (){
 		for (var z = 0; z < xPosBalls.length; z++) {
 			if(z > i){
 				if(Math.hypot(xPosBalls[z]-xPosBalls[i], yPosBalls[z]-yPosBalls[i]) < radiusBalls[i] + radiusBalls[z]){
+					xPosBalls[i] -= xMoveBalls[i];
+					yPosBalls[i] -= yMoveBalls[i];
+
 					//angle of the normal through both ball's center
 					var collAngle = calcAngle(xPosBalls[i], yPosBalls[i], xPosBalls[z], yPosBalls[z]);
 					if(collAngle<90){collAngle+=90;}
@@ -235,13 +238,16 @@ function draw (){
 	                var v1 = velBalls[i];
 	                var v2 = velBalls[z];
 
-	                var x1 = (v1 * Math.cos(theta1 - phi) * (m1-m2) + 2*m2*v2*Math.cos(theta2 - phi)) / (m1+m2) * Math.cos(phi) + v1*Math.sin(theta1-phi) * Math.sin(phi);
-	                var y1 = (v1 * Math.cos(theta1 - phi) * (m1-m2) + 2*m2*v2*Math.cos(theta2 - phi)) / (m1+m2) * Math.sin(phi) + v1*Math.sin(theta1-phi) * Math.cos(phi);
-	                var x2 = (v2 * Math.cos(theta2 - phi) * (m2-m1) + 2*m1*v1*Math.cos(theta1 - phi)) / (m1+m2) * Math.cos(phi) + v2*Math.sin(theta2-phi) * Math.sin(phi);
-	                var y2 = (v2 * Math.cos(theta2 - phi) * (m2-m1) + 2*m1*v1*Math.cos(theta1 - phi)) / (m1+m2) * Math.sin(phi) + v2*Math.sin(theta2-phi) * Math.cos(phi);
+	                var x1 = (v1 * Math.cos(theta1 - phi) * (m1-m2) + 2*m2*v2*Math.cos(theta2 - phi)) / (m1+m2) * Math.cos(phi) + v1*Math.sin(theta1-phi) * Math.cos(phi+pi/2);
+	                var y1 = (v1 * Math.cos(theta1 - phi) * (m1-m2) + 2*m2*v2*Math.cos(theta2 - phi)) / (m1+m2) * Math.sin(phi) + v1*Math.sin(theta1-phi) * Math.sin(phi+pi/2);
+	                var x2 = (v2 * Math.cos(theta2 - phi) * (m2-m1) + 2*m1*v1*Math.cos(theta1 - phi)) / (m1+m2) * Math.cos(phi) + v2*Math.sin(theta2-phi) * Math.cos(phi+pi/2);
+	                var y2 = (v2 * Math.cos(theta2 - phi) * (m2-m1) + 2*m1*v1*Math.cos(theta1 - phi)) / (m1+m2) * Math.sin(phi) + v2*Math.sin(theta2-phi) * Math.sin(phi+pi/2);
 
 	                angleBalls[i] = calcAngle(0,0,x1,y1);
 	                angleBalls[z] = calcAngle(0,0,x2,y2);
+
+	                velBalls[i] = calcVel(0,0,x1,y1) * 150;
+	                velBalls[z] = calcVel(0,0,x2,y2) * 150;
 
 	                angleToMove(angleBalls[i], velBalls[i], i);
 	                angleToMove(angleBalls[z], velBalls[z], z);
