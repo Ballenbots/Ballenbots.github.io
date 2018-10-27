@@ -1,320 +1,323 @@
-//often used variables
 var height = window.innerHeight;
 var width = window.innerWidth;
 var pi = Math.PI;
 
-//create canvas and refresh
 var canvas = document.getElementById("canvas");
-var context = canvas.getContext("2d");
+var ctx = canvas.getContext("2d");
 canvas.setAttribute("width", width);
 canvas.setAttribute("height", height);
-var refresh = setInterval(draw, 5);
 
-//prevent right click window
 document.addEventListener('contextmenu', event => event.preventDefault());
 
-//variables
+var ballArray = [];
+var wallArray = [];
 
-//balls
-var xPosBalls = [];
-var yPosBalls = [];
-var velBalls = [];
-var angleBalls = [];
-var radiusBalls = [];
-var standardRadiusBalls = 30
-var xMoveBalls = [];
-var yMoveBalls = [];
-var ballCount = 0;
+var friction = true;
+var gravity = false;
+var collision = true;
+var pause = false;
 
-//walls
-var xPosWall1 = []; var xPosWall2 = [];
-var yPosWall1 = []; var yPosWall2 = [];
-var angleWalls = [];
-var wallCount = 0;
+function edgeCollision(ball) {
+    if (ball.x - ball.radius + ball.dx < 0 ||
+        ball.x + ball.radius + ball.dx > canvas.width) {
+        ball.dx *= -1;
+    }
+    if (ball.y - ball.radius + ball.dy < 0 ||
+        ball.y + ball.radius + ball.dy > canvas.height) {
+        ball.dy *= -1;
+    }
+    if (ball.y + ball.radius > canvas.height) {
+        ball.y = canvas.height - ball.radius;
+    }
+    if (ball.y - ball.radius < 0) {
+        ball.y = ball.radius;
+    }
+    if (ball.x + ball.radius > canvas.width) {
+        ball.x = canvas.width - ball.radius;
+    }
+    if (ball.x - ball.radius < 0) {
+        ball.x = ball.radius;
+    }    
+}
 
-//mouseclicks
+function wallCollision(ball, wall) {
+    var dx=ball.x-wall.x1;
+    var dy=ball.y-wall.y1;
+
+    var dxx=wall.x2-wall.x1;
+    var dyy=wall.y2-wall.y1;
+
+    var t=(dx*dxx+dy*dyy)/(dxx*dxx+dyy*dyy);
+
+    var x=wall.x1+dxx*t;
+    var y=wall.y1+dyy*t;
+
+    if(t<0){x=wall.x1;y=wall.y1;}
+    if(t>1){x=wall.x2;y=wall.y2;}
+
+    if(distanceNextFrame2(ball, x, y) < ball.radius + 5){
+        var angleBall = ball.angle();
+        var angleWall = wall.angle();
+        if(distanceNextFrame2(ball, wall.x1, wall.y1) < ball.radius + 5){
+            angleWall = Math.atan2(ball.y - wall.y1, ball.x - wall.x1) - pi/2;
+        }
+        if(distanceNextFrame2(ball, wall.x2, wall.y2) < ball.radius + 5){
+            angleWall = Math.atan2(ball.y - wall.y2, ball.x - wall.x2) - pi/2;
+        }
+        var newAngle = angleWall*2 - angleBall;
+        if(newAngle>=2*pi){newAngle-=2*pi;}
+        if(newAngle<0){newAngle+=2*pi;}
+        ball.dx = Math.cos(newAngle) * ball.speed();
+        ball.dy = Math.sin(newAngle) * ball.speed();
+    }
+}
+
+function ballCollision() {
+    for (var ball1 in ballArray) {
+        if(collision){
+            for (var ball2 in ballArray) {
+                if (ball1 !== ball2 && distanceNextFrame(ballArray[ball1], ballArray[ball2]) <= 0) {
+                    var theta1 = ballArray[ball1].angle();
+                    var theta2 = ballArray[ball2].angle();
+                    var phi = Math.atan2(ballArray[ball2].y - ballArray[ball1].y, ballArray[ball2].x - ballArray[ball1].x);
+                    var m1 = ballArray[ball1].mass;
+                    var m2 = ballArray[ball2].mass;
+                    var v1 = ballArray[ball1].speed();
+                    var v2 = ballArray[ball2].speed();
+
+                    var dx1F = (v1 * Math.cos(theta1 - phi) * (m1-m2) + 2*m2*v2*Math.cos(theta2 - phi)) / (m1+m2) * Math.cos(phi) + v1*Math.sin(theta1-phi) * Math.cos(phi+Math.PI/2);
+                    var dy1F = (v1 * Math.cos(theta1 - phi) * (m1-m2) + 2*m2*v2*Math.cos(theta2 - phi)) / (m1+m2) * Math.sin(phi) + v1*Math.sin(theta1-phi) * Math.sin(phi+Math.PI/2);
+                    var dx2F = (v2 * Math.cos(theta2 - phi) * (m2-m1) + 2*m1*v1*Math.cos(theta1 - phi)) / (m1+m2) * Math.cos(phi) + v2*Math.sin(theta2-phi) * Math.cos(phi+Math.PI/2);
+                    var dy2F = (v2 * Math.cos(theta2 - phi) * (m2-m1) + 2*m1*v1*Math.cos(theta1 - phi)) / (m1+m2) * Math.sin(phi) + v2*Math.sin(theta2-phi) * Math.sin(phi+Math.PI/2);
+
+                    ballArray[ball1].dx = dx1F;
+                    ballArray[ball1].dy = dy1F;
+                    ballArray[ball2].dx = dx2F;
+                    ballArray[ball2].dy = dy2F;
+
+                    ballArray[ball1].grav = false;
+                    ballArray[ball2].grav = false;
+                }
+            }
+        }
+        edgeCollision(ballArray[ball1]);
+        for (var wall1 in wallArray) {
+            wallCollision(ballArray[ball1], wallArray[wall1]);
+        }
+    }   
+}
+
+function staticCollision() {
+    for (var ball1 in ballArray) {
+        for (var ball2 in ballArray) {
+            if (ball1 !== ball2 &&
+                distance(ballArray[ball1], ballArray[ball2]) < ballArray[ball1].radius + ballArray[ball2].radius)
+            {
+                var theta = Math.atan2((ballArray[ball1].y - ballArray[ball2].y), (ballArray[ball1].x - ballArray[ball2].x));
+                var overlap = ballArray[ball1].radius + ballArray[ball2].radius - distance (ballArray[ball1], ballArray[ball2]);
+                var smallerobject = ballArray[ball1].radius < ballArray[ball2].radius ? ball1 : ball2
+                ballArray[smallerobject].x -= overlap * Math.cos(theta);
+                ballArray[smallerobject].y -= overlap * Math.sin(theta);
+            }
+        }
+    }
+}
+
+function applyGravity() {
+    var grav = true;
+    for (var ball1 in ballArray) {
+        if (ballArray[ball1].onGround() == false) {
+            ballArray[ball1].dy += 0.29;
+        }
+    }
+}
+
+function applyFriction() {
+    for (var ball in ballArray) {
+        ballArray[ball].dx *= 0.995;
+        ballArray[ball].dy *= 0.995;
+    }
+}
+
+function moveBalls() {
+    for (var ball in ballArray) {
+        ballArray[ball].x += ballArray[ball].dx;
+        ballArray[ball].y += ballArray[ball].dy;
+    }    
+}
+
+function drawobjects() {
+    for (var ball in ballArray) {
+        ballArray[ball].draw();
+    }
+    for (var wall in wallArray) {
+        wallArray[wall].draw();
+    }
+
+    ctx.fillStyle = "Black"; 
+    ctx.beginPath();
+    ctx.moveTo(xPosLeftDown,yPosLeftDown);
+    ctx.lineTo(xPosLeftMove,yPosLeftMove);
+    ctx.lineWidth = 3;
+    ctx.strokeStyle = "Black";
+    ctx.stroke();
+    var angle = Math.atan2(yPosLeftMove-yPosLeftDown,xPosLeftMove-xPosLeftDown);
+    ctx.beginPath();
+    ctx.moveTo(xPosLeftMove, yPosLeftMove);
+    ctx.lineTo(xPosLeftMove-1*Math.cos(angle-pi/7),yPosLeftMove-1*Math.sin(angle-pi/7));
+    ctx.lineTo(xPosLeftMove-1*Math.cos(angle+pi/7),yPosLeftMove-1*Math.sin(angle+pi/7));
+    ctx.lineTo(xPosLeftMove, yPosLeftMove);
+    ctx.lineTo(xPosLeftMove-1*Math.cos(angle-pi/7),yPosLeftMove-1*Math.sin(angle-pi/7));
+    ctx.strokeStyle = "Black";
+    ctx.lineWidth = 11;
+    ctx.stroke();
+    ctx.fillStyle = "Black";
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(xPosScroll,yPosScroll,standardRadiusBalls,0,pi*2);
+    ctx.closePath();
+    ctx.lineWidth = 1;
+    ctx.stroke();
+    ctx.fillStyle = "Black"; 
+    ctx.beginPath();
+    ctx.moveTo(xPosRightDown,yPosRightDown);
+    ctx.lineTo(xPosRightMove,yPosRightMove);
+    ctx.lineWidth = 5;
+    ctx.strokeStyle = "Black";
+    ctx.stroke();
+}
+
+function draw() {
+
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    if(gravity){applyGravity();}
+    if(friction){applyFriction();}   
+    if(pause==false){moveBalls();}
+    drawobjects();
+    if(collision){staticCollision();}
+    ballCollision();
+    requestAnimationFrame(draw);
+}
+
 var xPosLeftMove; var xPosLeftDown; var xPosLeftUp;
 var yPosLeftMove; var yPosLeftDown; var yPosLeftUp; var leftHeld = false;
 var xPosRightMove; var xPosRightDown; var xPosRightUp;
 var yPosRightMove; var yPosRightDown; var yPosRightUp; var rightHeld = false;
-var scrollTimer = 0; var xPosScroll; var yPosScroll; //scroll variables to show ball radius
+var scrollTimer = 0; var xPosScroll; var yPosScroll;
+var standardRadiusBalls = 30; 
 
-//calculation functions
-
-//returns angle from 0-360 degrees, used to calculate angles of new balls and walls
-function calcAngle(x1, y1, x2, y2) {
-	var xDiff = x2-x1; var yDiff = y2-y1;
-	var angle = Math.atan2(yDiff, xDiff) / pi * -180;
-	return angle;
-}
-
-//returns velocity, used to calculate angles of new balls
-function calcVel(x1, y1, x2, y2){
-	var vel = Math.hypot(x2-x1, y2-y1)/150;
-	return vel;
-}
-
-//calculates x and y movement based on angle and velocity
-function angleToMove(angle, velocity, i) {
-	angle = fixAngle(angle);
-	if(velBalls[i]>0){velBalls[i] -= 0.1;}
-	xMoveBalls[i] = Math.cos(angle/180*pi) * velocity;
-	yMoveBalls[i] = -Math.sin(angle/180*pi) * velocity;
-}
-
-//return angle between 0 and 360 degrees
-function fixAngle(angle){
-	if(angle>=360){angle-=360;}
-	if(angle<0){angle+=360;}
-
-	return angle;
-}
-
-
-//detect mouseclick
 canvas.onmousedown = function(e){
-	if(e.button == 0){ //left click to spawn balls
-		xPosLeftDown = e.clientX; yPosLeftDown = e.clientY; leftHeld = true;
+    if(e.button == 0){
+        xPosLeftDown = e.clientX; yPosLeftDown = e.clientY; leftHeld = true;
 
-		//prevent balls spawning off screen
-		if(xPosLeftDown < standardRadiusBalls){xPosLeftDown = standardRadiusBalls;}
-		if(xPosLeftDown > width - standardRadiusBalls){xPosLeftDown = width - standardRadiusBalls;}
-		if(yPosLeftDown < standardRadiusBalls){yPosLeftDown = standardRadiusBalls;}
-		if(yPosLeftDown > height - standardRadiusBalls){yPosLeftDown = height - standardRadiusBalls;}
-	}
-	else if(e.button == 2){ //right click to create walls
-		xPosRightDown = e.clientX; yPosRightDown = e.clientY; rightHeld = true;
+        if(xPosLeftDown < standardRadiusBalls){xPosLeftDown = standardRadiusBalls;}
+        if(xPosLeftDown > width - standardRadiusBalls){xPosLeftDown = width - standardRadiusBalls;}
+        if(yPosLeftDown < standardRadiusBalls){yPosLeftDown = standardRadiusBalls;}
+        if(yPosLeftDown > height - standardRadiusBalls){yPosLeftDown = height - standardRadiusBalls;}
+    }
+    else if(e.button == 2){
+        xPosRightDown = e.clientX; yPosRightDown = e.clientY; rightHeld = true;
+    }
+    else if(e.button == 1){
+        standardRadiusBalls = 30;
 
-		xPosWall1[wallCount] = xPosRightDown;
-    	yPosWall1[wallCount] = yPosRightDown;
-	}
-	else if(e.button == 1){ //middle click to reset ball radius
-		standardRadiusBalls = 30;
-
-		//detect when mouse stops scrolling to show ball radius
-		if (scrollTimer != 0){
+        if (scrollTimer != 0){
         clearTimeout(scrollTimer);
-	    }
-		scrollTimer = window.setTimeout("scrollStop()", 500);
+        }
+        scrollTimer = window.setTimeout("scrollStop()", 500);
 
-		xPosScroll = xPosLeftMove; yPosScroll = yPosLeftMove;
-	}
+        xPosScroll = xPosLeftMove; yPosScroll = yPosLeftMove;
+    }
 };
 
 
 canvas.onmouseup = function(e){
-	if(e.button == 0){ //left click to spawn balls
-		//prevent spawning in other balls
-		var click = true;
-		for (var i = 0; i < xPosBalls.length; i++) {
-			if(Math.hypot(xPosLeftDown-xPosBalls[i], yPosLeftDown-yPosBalls[i]) < standardRadiusBalls + radiusBalls[i]){
-				click = false;
-			}
-		}
-		if(click || ballCount == 0){
- 			xPosLeftUp = e.clientX; yPosLeftUp = e.clientY; leftHeld = false;
+    if(e.button == 0){
+        var click = true;
+        for (var ball1 in ballArray) {
+            if (distance2(ballArray[ball1].x, ballArray[ball1].y, xPosLeftDown, yPosLeftDown) < ballArray[ball1].radius){
+                click = false;
+            }
+        }
+        if(click){
+            xPosLeftUp = e.clientX; yPosLeftUp = e.clientY; leftHeld = false;
 
- 			//save ball position and radius
- 			xPosBalls.push(xPosLeftDown);
-			yPosBalls.push(yPosLeftDown);
-			radiusBalls.push(standardRadiusBalls);
+            ballArray[ballArray.length] = new Ball(xPosLeftDown, yPosLeftDown, -(xPosLeftDown-xPosLeftUp)/30, -(yPosLeftDown-yPosLeftUp)/30, standardRadiusBalls);
 
-			//calculate ball angle, speed and x and y movement
-			var tempAngle = calcAngle(xPosLeftDown, yPosLeftDown, xPosLeftUp, yPosLeftUp);
-			angleBalls.push(tempAngle);
-			var tempVel = calcVel(xPosLeftDown, yPosLeftDown, xPosLeftUp, yPosLeftUp);
-			velBalls.push(tempVel);
-			angleToMove(tempAngle, tempVel, ballCount);
+            xPosLeftDown = "."; yPosLeftDown = ".";
+        }
+        else{
+            xPosLeftDown = "."; yPosLeftDown = ".";
+        }
+    }
+    else if(e.button == 2){
+        xPosRightUp = e.clientX; yPosRightUp = e.clientY; rightHeld = false;
+        xPosRightMove = "."; yPosRightMove = ".";
 
-			//delete left mouse down to remove the arrow
-			xPosLeftDown = "."; yPosLeftDown = ".";
-			ballCount++;
- 		}
- 		else{
- 			xPosLeftDown = "."; yPosLeftDown = ".";
- 		}
-	}
-	else if(e.button == 2){ //right click to create walls
-		xPosRightUp = e.clientX; yPosRightUp = e.clientY; rightHeld = false;
+        wallArray[wallArray.length] = new Wall(xPosRightDown, yPosRightDown, xPosRightUp, yPosRightUp);
 
-		//save wall position
-		xPosWall2[wallCount] = xPosRightUp;
-    	yPosWall2[wallCount] = yPosRightUp;
-
-    	//save wall angle
-    	angleWalls.push(calcAngle(xPosRightDown, yPosRightDown, xPosRightUp, yPosRightUp));
-
-    	wallCount++;
-	}
+        xPosRightDown = "."; yPosRightDown = ".";
+    }
 };
 
 canvas.onmousemove = function(e){
-	xPosLeftMove = e.clientX; yPosLeftMove = e.clientY;
+    xPosLeftMove = e.clientX; yPosLeftMove = e.clientY;
     xPosRightMove = e.clientX; yPosRightMove = e.clientY;
-    
+
     if(rightHeld){
-	    xPosWall2[wallCount] = xPosRightMove;
-	    yPosWall2[wallCount] = yPosRightMove;
-	}
+        xPosRightMove = e.clientX; yPosRightMove = e.clientY;
+    }
 };
 
 canvas.onwheel = function(e){
-	//detect when mouse stops scrolling to show ball radius
-	if (scrollTimer != 0){
+    if (scrollTimer != 0){
         clearTimeout(scrollTimer);
     }
-	scrollTimer = window.setTimeout("scrollStop()", 250);
+    scrollTimer = window.setTimeout("scrollStop()", 250);
 
-	xPosScroll = xPosLeftMove; yPosScroll = yPosLeftMove;
+    xPosScroll = xPosLeftMove; yPosScroll = yPosLeftMove;
 
-    if(e.deltaY < 0){ //scroll up
-		if(standardRadiusBalls < 100){standardRadiusBalls += 2;}
+    if(e.deltaY < 0){
+        if(standardRadiusBalls < 99){standardRadiusBalls += 2;}
     }
-    if(e.deltaY > 0){ //scroll down
-    	if(standardRadiusBalls > 2){standardRadiusBalls -= 2;}
+    if(e.deltaY > 0){
+        if(standardRadiusBalls > 12){standardRadiusBalls -= 2;}
     }
 };
 
-//on scroll stop
 function scrollStop() {
-	xPosScroll = "."; yPosScroll = ".";
+    xPosScroll = "."; yPosScroll = ".";
 }
 
-//draw everything
-function draw (){
-	//clear canvas
-	context.clearRect(0, 0, canvas.width, canvas.height);
+document.onkeydown = checkKeyDown;
 
-	//detect collision
-	for (var i = 0; i < xPosBalls.length; i++) {
-		//edge collision
-		if(xPosBalls[i] < radiusBalls[i]){angleBalls[i] = 180 - angleBalls[i]; angleToMove(angleBalls[i], velBalls[i], i);}
-		else if(xPosBalls[i] > width - radiusBalls[i]){angleBalls[i] = 180 - angleBalls[i]; angleToMove(angleBalls[i], velBalls[i], i);}
-		else if(yPosBalls[i] < radiusBalls[i]){angleBalls[i] *= -1; angleToMove(angleBalls[i], velBalls[i], i);}
-		else if(yPosBalls[i] > height - radiusBalls[i]){angleBalls[i] *= -1; angleToMove(angleBalls[i], velBalls[i], i);}
+function checkKeyDown(e) {
 
-		//wall collision
-		for (var z = 0; z < xPosWall1.length; z++) {
-
-		    var dx=xPosBalls[i]-xPosWall1[z];
-		    var dy=yPosBalls[i]-yPosWall1[z];
-
-		    var dxx=xPosWall2[z]-xPosWall1[z];
-		    var dyy=yPosWall2[z]-yPosWall1[z];
-
-		    var t=(dx*dxx+dy*dyy)/(dxx*dxx+dyy*dyy);
-
-		    var x=xPosWall1[z]+dxx*t;
-		    var y=yPosWall1[z]+dyy*t;
-
-		    if(t<0){x=xPosWall1[z];y=yPosWall1[z];}
-		    if(t>1){x=xPosWall2[z];y=yPosWall2[z];}
-
-			if(Math.hypot(x-xPosBalls[i], y-yPosBalls[i]) < radiusBalls[i]){
-				angleBalls[i] = 2*angleWalls[z] - angleBalls[i];
-				angleToMove(angleBalls[i], velBalls[i], i);
-			}
-		}
-
-		//ball collision
-		for (var z = 0; z < xPosBalls.length; z++) {
-			if(z > i){
-				if(Math.hypot(xPosBalls[z]-xPosBalls[i], yPosBalls[z]-yPosBalls[i]) < radiusBalls[i] + radiusBalls[z]){
-					xPosBalls[i] -= xMoveBalls[i];
-					yPosBalls[i] -= yMoveBalls[i];
-
-					//angle of the normal through both ball's center
-					var collAngle = calcAngle(xPosBalls[i], yPosBalls[i], xPosBalls[z], yPosBalls[z]);
-					if(collAngle<90){collAngle+=90;}
-					else if(collAngle<270){collAngle-=90;}
-					else{collAngle-=270;}
-
-					//calculation of angle
-					var theta1 = angleBalls[i]/180*pi;
-	                var theta2 = angleBalls[z]/180*pi;
-	                var phi = collAngle/180*pi;
-	                var m1 = radiusBalls[i];
-	                var m2 = radiusBalls[z];
-	                var v1 = velBalls[i];
-	                var v2 = velBalls[z];
-
-	                var x1 = (v1 * Math.cos(theta1 - phi) * (m1-m2) + 2*m2*v2*Math.cos(theta2 - phi)) / (m1+m2) * Math.cos(phi) + v1*Math.sin(theta1-phi) * Math.cos(phi+pi/2);
-	                var y1 = (v1 * Math.cos(theta1 - phi) * (m1-m2) + 2*m2*v2*Math.cos(theta2 - phi)) / (m1+m2) * Math.sin(phi) + v1*Math.sin(theta1-phi) * Math.sin(phi+pi/2);
-	                var x2 = (v2 * Math.cos(theta2 - phi) * (m2-m1) + 2*m1*v1*Math.cos(theta1 - phi)) / (m1+m2) * Math.cos(phi) + v2*Math.sin(theta2-phi) * Math.cos(phi+pi/2);
-	                var y2 = (v2 * Math.cos(theta2 - phi) * (m2-m1) + 2*m1*v1*Math.cos(theta1 - phi)) / (m1+m2) * Math.sin(phi) + v2*Math.sin(theta2-phi) * Math.sin(phi+pi/2);
-
-	                angleBalls[i] = calcAngle(0,0,x1,y1);
-	                angleBalls[z] = calcAngle(0,0,x2,y2);
-
-	                velBalls[i] = calcVel(0,0,x1,y1) * 150;
-	                velBalls[z] = calcVel(0,0,x2,y2) * 150;
-
-	                angleToMove(angleBalls[i], velBalls[i], i);
-	                angleToMove(angleBalls[z], velBalls[z], z);
-				}
-			}
-		}
-	}
-
-	//move balls
-	for (var i = 0; i < xPosBalls.length; i++) {
-		xPosBalls[i] += xMoveBalls[i];
-		yPosBalls[i] += yMoveBalls[i];
-	}
-
-	//draw arrow on left click held
-	context.fillStyle = "Black"; 
-	context.beginPath();
-	context.moveTo(xPosLeftDown,yPosLeftDown);
-	context.lineTo(xPosLeftMove,yPosLeftMove);
-	context.lineWidth = 3;
-	context.strokeStyle = "Black";
-	context.stroke();
-	var angle = Math.atan2(yPosLeftMove-yPosLeftDown,xPosLeftMove-xPosLeftDown);
-    context.beginPath();
-    context.moveTo(xPosLeftMove, yPosLeftMove);
-    context.lineTo(xPosLeftMove-1*Math.cos(angle-pi/7),yPosLeftMove-1*Math.sin(angle-pi/7));
-    context.lineTo(xPosLeftMove-1*Math.cos(angle+pi/7),yPosLeftMove-1*Math.sin(angle+pi/7));
-    context.lineTo(xPosLeftMove, yPosLeftMove);
-    context.lineTo(xPosLeftMove-1*Math.cos(angle-pi/7),yPosLeftMove-1*Math.sin(angle-pi/7));
-    context.strokeStyle = "Black";
-    context.lineWidth = 11;
-    context.stroke();
-    context.fillStyle = "Black";
-    context.fill();
-
-    //draw ball radius on scroll
-    context.beginPath();
-	context.arc(xPosScroll,yPosScroll,standardRadiusBalls,0,pi*2);
-	context.closePath();
-	context.lineWidth = 1;
-	context.stroke();
-
-	//draw walls
-    for (var i = 0; i < xPosWall1.length; i++) {
-	    context.fillStyle = "Black"; 
-		context.beginPath();
-		context.moveTo(xPosWall1[i],yPosWall1[i]);
-		context.lineTo(xPosWall2[i],yPosWall2[i]);
-		context.lineWidth = 5;
-		context.strokeStyle = "Black";
-		context.stroke();
-	}
-
-	//draw balls
-	for (var i = 0; i < xPosBalls.length; i++) {
-		if(i % 8 == 0){context.fillStyle = "Blue";}
-		if(i % 8 == 1){context.fillStyle = "Red";}
-		if(i % 8 == 2){context.fillStyle = "Purple";}
-		if(i % 8 == 3){context.fillStyle = "Green";}
-		if(i % 8 == 4){context.fillStyle = "Yellow";}
-		if(i % 8 == 5){context.fillStyle = "Pink";}
-		if(i % 8 == 6){context.fillStyle = "Orange";}
-		if(i % 8 == 7){context.fillStyle = "Lightgreen";}
-
-		context.beginPath();
-		context.arc(xPosBalls[i],yPosBalls[i],radiusBalls[i],0,pi*2);
-		context.closePath();
-		context.fill();
-	}
+    e = e || window.event;
+    
+    if (e.keyCode == '78'){ //n
+        ballArray[ballArray.length] = new Ball(randomX(), randomY(), randomDx(), randomDy(), randomRadius());
+    }
+    if (e.keyCode == '82'){ //r
+        ballArray = [];
+        wallArray = [];
+    }
+    if (e.keyCode == '67'){ //c
+        collision = !collision;
+    }
+    if (e.keyCode == '70'){ //f
+        friction = !friction;
+    }
+    if (e.keyCode == '71'){ //g
+        gravity = !gravity;
+    }
+    if (e.keyCode == '72'){ //h
+        document.getElementById("info").style.display = "none";
+    }
+    if (e.keyCode == '80'){ //p
+        pause = !pause;
+    }
 }
+
+draw();
