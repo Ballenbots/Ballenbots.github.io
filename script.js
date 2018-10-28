@@ -69,6 +69,26 @@ function wallCollision(ball, wall) {
         if(newAngle<0){newAngle+=2*pi;}
         ball.dx = Math.cos(newAngle) * ball.speed();
         ball.dy = Math.sin(newAngle) * ball.speed();
+
+        for (var wall2 in wallArray) {
+            var dx2=ball.x-wallArray[wall2].x1;
+            var dy2=ball.y-wallArray[wall2].y1;
+
+            var dxx2=wallArray[wall2].x2-wallArray[wall2].x1;
+            var dyy2=wallArray[wall2].y2-wallArray[wall2].y1;
+
+            var t2=(dx2*dxx2+dy2*dyy2)/(dxx2*dxx2+dyy2*dyy2);
+
+            var x2=wallArray[wall2].x1+dxx2*t2;
+            var y2=wallArray[wall2].y1+dyy2*t2;
+
+            if(t2<0){x2=wallArray[wall2].x1;y2=wallArray[wall2].y1;}
+            if(t2>1){x2=wallArray[wall2].x2;y2=wallArray[wall2].y2;}
+
+            if(distanceNextFrame2(ball, x2, y2) < ball.radius + 5 && wallArray[wall2] !== wall){
+                //ball is touching at least two walls
+            }
+        }
     }
 }
 
@@ -97,6 +117,9 @@ function ballCollision() {
 
                     ballArray[ball1].grav = false;
                     ballArray[ball2].grav = false;
+                }
+                if (ball1 !== ball2 && distance(ballArray[ball1], ballArray[ball2]) <= ballArray[ball1].radius + ballArray[ball2].radius) {
+                    //ball is touching another ball
                 }
             }
         }
@@ -127,7 +150,9 @@ function applyGravity() {
     var grav = true;
     for (var ball1 in ballArray) {
         if (ballArray[ball1].onGround() == false) {
-            ballArray[ball1].dy += 0.29;
+            //if(ballArray[ball1].grav != false){
+                ballArray[ball1].dy += 0.29;
+            //}
         }
     }
 }
@@ -188,15 +213,16 @@ function drawobjects() {
 }
 
 function draw() {
-
+    if(pause==false){
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     if(gravity){applyGravity();}
     if(friction){applyFriction();}   
-    if(pause==false){moveBalls();}
+    moveBalls();
     drawobjects();
     if(collision){staticCollision();}
     ballCollision();
+    }
     requestAnimationFrame(draw);
 }
 
@@ -313,7 +339,8 @@ function checkKeyDown(e) {
         gravity = !gravity;
     }
     if (e.keyCode == '72'){ //h
-        document.getElementById("info").style.display = "none";
+        if(document.getElementById("info").style.display == ""){document.getElementById("info").style.display = "none";}
+        else if(document.getElementById("info").style.display == "none"){document.getElementById("info").style.display = "";}
     }
     if (e.keyCode == '80'){ //p
         pause = !pause;
