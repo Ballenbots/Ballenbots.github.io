@@ -55,7 +55,7 @@ function wallCollision(ball, wall) {
     if(t<0){x=wall.x1;y=wall.y1;}
     if(t>1){x=wall.x2;y=wall.y2;}
 
-    if(distanceNextFrame2(ball, x, y) < ball.radius + 5){
+    if(distanceNextFrame2(ball, x, y) < ball.radius + 2.5){
         var angleBall = ball.angle();
         var angleWall = wall.angle();
         if(distanceNextFrame2(ball, wall.x1, wall.y1) < ball.radius + 5){
@@ -69,26 +69,17 @@ function wallCollision(ball, wall) {
         if(newAngle<0){newAngle+=2*pi;}
         ball.dx = Math.cos(newAngle) * ball.speed();
         ball.dy = Math.sin(newAngle) * ball.speed();
+    }
 
-        for (var wall2 in wallArray) {
-            var dx2=ball.x-wallArray[wall2].x1;
-            var dy2=ball.y-wallArray[wall2].y1;
-
-            var dxx2=wallArray[wall2].x2-wallArray[wall2].x1;
-            var dyy2=wallArray[wall2].y2-wallArray[wall2].y1;
-
-            var t2=(dx2*dxx2+dy2*dyy2)/(dxx2*dxx2+dyy2*dyy2);
-
-            var x2=wallArray[wall2].x1+dxx2*t2;
-            var y2=wallArray[wall2].y1+dyy2*t2;
-
-            if(t2<0){x2=wallArray[wall2].x1;y2=wallArray[wall2].y1;}
-            if(t2>1){x2=wallArray[wall2].x2;y2=wallArray[wall2].y2;}
-
-            if(distanceNextFrame2(ball, x2, y2) < ball.radius + 5 && wallArray[wall2] !== wall){
-                //ball is touching at least two walls
-            }
-        }
+    if(distance2(ball.x, ball.y, x, y) < ball.radius + 2.5){
+        ball.grav -= 1;
+        if(wall.y1<=wall.y2){ball.wallX = wall.x1 - wall.x2;}
+        else{ball.wallX = wall.x2 - wall.x1;}
+        ball.wallY = Math.abs(wall.y1 - wall.y2);
+        ball.wallAngle = (wall.angle() % pi)/pi * 2;
+    }
+    else{
+        ball.grav += 1;
     }
 }
 
@@ -114,12 +105,6 @@ function ballCollision() {
                     ballArray[ball1].dy = dy1F;
                     ballArray[ball2].dx = dx2F;
                     ballArray[ball2].dy = dy2F;
-
-                    ballArray[ball1].grav = false;
-                    ballArray[ball2].grav = false;
-                }
-                if (ball1 !== ball2 && distance(ballArray[ball1], ballArray[ball2]) <= ballArray[ball1].radius + ballArray[ball2].radius) {
-                    //ball is touching another ball
                 }
             }
         }
@@ -147,13 +132,17 @@ function staticCollision() {
 }
 
 function applyGravity() {
-    var grav = true;
     for (var ball1 in ballArray) {
         if (ballArray[ball1].onGround() == false) {
-            //if(ballArray[ball1].grav != false){
+            if(ballArray[ball1].grav == wallArray.length){
                 ballArray[ball1].dy += 0.29;
-            //}
+            }
+            else{
+                ballArray[ball1].dy += 0.29 * (ballArray[ball1].wallY/(ballArray[ball1].wallY + ballArray[ball1].wallX)) * ballArray[ball1].wallAngle;
+                ballArray[ball1].dx += 0.29 * (ballArray[ball1].wallX/(ballArray[ball1].wallY + ballArray[ball1].wallX)) * ballArray[ball1].wallAngle;
+            }
         }
+        ballArray[ball1].grav = 0;
     }
 }
 
@@ -213,16 +202,15 @@ function drawobjects() {
 }
 
 function draw() {
-    if(pause==false){
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-
+    if(pause==false){
     if(gravity){applyGravity();}
     if(friction){applyFriction();}   
     moveBalls();
-    drawobjects();
     if(collision){staticCollision();}
     ballCollision();
     }
+    drawobjects();
     requestAnimationFrame(draw);
 }
 
@@ -256,7 +244,6 @@ canvas.onmousedown = function(e){
         xPosScroll = xPosLeftMove; yPosScroll = yPosLeftMove;
     }
 };
-
 
 canvas.onmouseup = function(e){
     if(e.button == 0){

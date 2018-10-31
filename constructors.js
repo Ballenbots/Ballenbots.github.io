@@ -5,13 +5,21 @@ function Ball(x, y, dx, dy, radius) {
     this.mass = this.radius * this.radius * this.radius;
     this.x = x;
     this.y = y;
+    this.grav = 0;
+    this.wallX = 1;
+    this.wallY = 1;
+    this.wallAngle = 1;
     this.color = randomColor();
+    this.colorTransparent = this.color.slice(0, -1) + ", 0.5)";
     this.draw = function() {
         ctx.beginPath();
         ctx.arc(this.x, this.y, this.radius, 0, 2*Math.PI);
         ctx.closePath();
-        ctx.fillStyle = this.color;
+        ctx.fillStyle = this.colorTransparent;
         ctx.fill();
+        ctx.lineWidth = 1;
+        ctx.strokeStyle = this.color;
+        ctx.stroke();
     };
     this.speed = function() {
         return Math.sqrt(this.dx * this.dx + this.dy * this.dy);
@@ -44,9 +52,9 @@ function Wall(x1, y1, x2, y2) {
 }
 
 function randomColor() {
-    red = Math.floor(Math.random() * 3) * 127;
-    green = Math.floor(Math.random() * 3) * 127;
-    blue = Math.floor(Math.random() * 3) * 127;
+    red = Math.floor(Math.random() * 256);
+    green = Math.floor(Math.random() * 256);
+    blue = Math.floor(Math.random() * 256);
     if(red > 250 && blue > 250 && red > 250){randomColor();}
     rc = "rgb(" + red + ", " + green + ", " + blue + ")";
     return rc;
