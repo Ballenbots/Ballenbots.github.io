@@ -58,10 +58,10 @@ function wallCollision(ball, wall) {
     if(distanceNextFrame2(ball, x, y) < ball.radius + 2.5){
         var angleBall = ball.angle();
         var angleWall = wall.angle();
-        if(distanceNextFrame2(ball, wall.x1, wall.y1) < ball.radius + 5){
+        if(distanceNextFrame2(ball, wall.x1, wall.y1) < ball.radius + 2.5){
             angleWall = Math.atan2(ball.y - wall.y1, ball.x - wall.x1) - pi/2;
         }
-        if(distanceNextFrame2(ball, wall.x2, wall.y2) < ball.radius + 5){
+        if(distanceNextFrame2(ball, wall.x2, wall.y2) < ball.radius + 2.5){
             angleWall = Math.atan2(ball.y - wall.y2, ball.x - wall.x2) - pi/2;
         }
         var newAngle = angleWall*2 - angleBall;
