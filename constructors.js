@@ -10,12 +10,11 @@ function Ball(x, y, dx, dy, radius) {
     this.wallY = 1;
     this.wallAngle = 1;
     this.color = randomColor();
-    this.colorTransparent = this.color.slice(0, -1) + ", 0.5)";
     this.draw = function() {
         ctx.beginPath();
         ctx.arc(this.x, this.y, this.radius, 0, 2*Math.PI);
         ctx.closePath();
-        ctx.fillStyle = this.colorTransparent;
+        ctx.fillStyle = this.color.slice(0, -1) + ", 0.5)";;
         ctx.fill();
         ctx.lineWidth = 1;
         ctx.strokeStyle = this.color;

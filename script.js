@@ -16,6 +16,7 @@ var friction = true;
 var gravity = false;
 var collision = true;
 var pause = false;
+var clear = true;
 
 function edgeCollision(ball) {
     if (ball.x - ball.radius + ball.dx < 0 ||
@@ -169,41 +170,43 @@ function drawobjects() {
         wallArray[wall].draw();
     }
 
-    ctx.fillStyle = "Black"; 
-    ctx.beginPath();
-    ctx.moveTo(xPosLeftDown,yPosLeftDown);
-    ctx.lineTo(xPosLeftMove,yPosLeftMove);
-    ctx.lineWidth = 3;
-    ctx.strokeStyle = "Black";
-    ctx.stroke();
-    var angle = Math.atan2(yPosLeftMove-yPosLeftDown,xPosLeftMove-xPosLeftDown);
-    ctx.beginPath();
-    ctx.moveTo(xPosLeftMove, yPosLeftMove);
-    ctx.lineTo(xPosLeftMove-1*Math.cos(angle-pi/7),yPosLeftMove-1*Math.sin(angle-pi/7));
-    ctx.lineTo(xPosLeftMove-1*Math.cos(angle+pi/7),yPosLeftMove-1*Math.sin(angle+pi/7));
-    ctx.lineTo(xPosLeftMove, yPosLeftMove);
-    ctx.lineTo(xPosLeftMove-1*Math.cos(angle-pi/7),yPosLeftMove-1*Math.sin(angle-pi/7));
-    ctx.strokeStyle = "Black";
-    ctx.lineWidth = 11;
-    ctx.stroke();
-    ctx.fillStyle = "Black";
-    ctx.fill();
-    ctx.beginPath();
-    ctx.arc(xPosScroll,yPosScroll,standardRadiusBalls,0,pi*2);
-    ctx.closePath();
-    ctx.lineWidth = 1;
-    ctx.stroke();
-    ctx.fillStyle = "Black"; 
-    ctx.beginPath();
-    ctx.moveTo(xPosRightDown,yPosRightDown);
-    ctx.lineTo(xPosRightMove,yPosRightMove);
-    ctx.lineWidth = 5;
-    ctx.strokeStyle = "Black";
-    ctx.stroke();
+    if(clear){
+        ctx.fillStyle = "Black"; 
+        ctx.beginPath();
+        ctx.moveTo(xPosLeftDown,yPosLeftDown);
+        ctx.lineTo(xPosLeftMove,yPosLeftMove);
+        ctx.lineWidth = 3;
+        ctx.strokeStyle = "Black";
+        ctx.stroke();
+        var angle = Math.atan2(yPosLeftMove-yPosLeftDown,xPosLeftMove-xPosLeftDown);
+        ctx.beginPath();
+        ctx.moveTo(xPosLeftMove, yPosLeftMove);
+        ctx.lineTo(xPosLeftMove-1*Math.cos(angle-pi/7),yPosLeftMove-1*Math.sin(angle-pi/7));
+        ctx.lineTo(xPosLeftMove-1*Math.cos(angle+pi/7),yPosLeftMove-1*Math.sin(angle+pi/7));
+        ctx.lineTo(xPosLeftMove, yPosLeftMove);
+        ctx.lineTo(xPosLeftMove-1*Math.cos(angle-pi/7),yPosLeftMove-1*Math.sin(angle-pi/7));
+        ctx.strokeStyle = "Black";
+        ctx.lineWidth = 11;
+        ctx.stroke();
+        ctx.fillStyle = "Black";
+        ctx.fill();
+        ctx.beginPath();
+        ctx.arc(xPosScroll,yPosScroll,standardRadiusBalls,0,pi*2);
+        ctx.closePath();
+        ctx.lineWidth = 1;
+        ctx.stroke();
+        ctx.fillStyle = "Black"; 
+        ctx.beginPath();
+        ctx.moveTo(xPosRightDown,yPosRightDown);
+        ctx.lineTo(xPosRightMove,yPosRightMove);
+        ctx.lineWidth = 5;
+        ctx.strokeStyle = "Black";
+        ctx.stroke();
+    }
 }
 
 function draw() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    if(clear){ctx.clearRect(0, 0, canvas.width, canvas.height);}
     if(pause==false){
     if(gravity){applyGravity();}
     if(friction){applyFriction();}   
@@ -316,6 +319,10 @@ function checkKeyDown(e) {
     if (e.keyCode == '82'){ //r
         ballArray = [];
         wallArray = [];
+    }
+    if (e.keyCode == '65'){ //a
+        clear = !clear;
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
     }
     if (e.keyCode == '67'){ //c
         collision = !collision;
