@@ -73,10 +73,11 @@ function wallCollision(ball, wall) {
 
     if(distance2(ball.x, ball.y, x, y) < ball.radius + 2.5){
         ball.grav -= 1;
-        if(wall.y1<=wall.y2){ball.wallX = wall.x1 - wall.x2;}
-        else{ball.wallX = wall.x2 - wall.x1;}
+        ball.wallX = Math.abs(wall.x1 - wall.x2);
+        if(wall.y1>wall.y2&&wall.x1<wall.x2){ball.wallX *= -1;}
+        if(wall.y2>wall.y1&&wall.x2<wall.x1){ball.wallX *= -1;}
         ball.wallY = Math.abs(wall.y1 - wall.y2);
-        ball.wallAngle = (wall.angle() % pi)/pi * 2;
+        ball.wallAngle = Math.abs((wall.angle() % pi)/pi);
     }
     else{
         ball.grav += 1;
@@ -137,9 +138,9 @@ function applyGravity() {
             if(ballArray[ball1].grav == wallArray.length){
                 ballArray[ball1].dy += 0.29;
             }
-            else{
-                ballArray[ball1].dy += 0.29 * (ballArray[ball1].wallY/(ballArray[ball1].wallY + ballArray[ball1].wallX)) * ballArray[ball1].wallAngle;
-                ballArray[ball1].dx += 0.29 * (ballArray[ball1].wallX/(ballArray[ball1].wallY + ballArray[ball1].wallX)) * ballArray[ball1].wallAngle;
+            else if(ballArray[ball1].grav == wallArray.length -2){
+                ballArray[ball1].dy += 0.29 * (ballArray[ball1].wallY/(Math.abs(ballArray[ball1].wallY) + Math.abs(ballArray[ball1].wallX))) * ballArray[ball1].wallAngle;
+                ballArray[ball1].dx += 0.29 * (ballArray[ball1].wallX/(Math.abs(ballArray[ball1].wallY) + Math.abs(ballArray[ball1].wallX))) * ballArray[ball1].wallAngle;
             }
         }
         ballArray[ball1].grav = 0;
