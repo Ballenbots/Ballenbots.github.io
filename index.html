@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <html>
 <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=yes, minimal-ui">
+    <meta name="mobile-web-app-capable" content="yes">
     <title>Bots</title>
     <style>
     body {
@@ -24,9 +26,17 @@
       -ms-user-select: none;
       user-select: none;
     }
+    #navBar {
+      display: none;
+      position: absolute;
+      height: 5%;
+      width: 100%;
+      bottom: 0;
+      border-top: 1px solid black;
+    }
     </style>
 </head>
-<body>
+<body id="body">
     <div id="info">
         <font>
           Left click, hold and release to spawn balls <br>
@@ -41,6 +51,10 @@
           H to Hide text <br>
           A to create Art
         </font>
+    </div>
+
+    <div id="navBar">
+        
     </div>
 
     <canvas id="canvas"></canvas>

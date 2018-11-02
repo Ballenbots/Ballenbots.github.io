@@ -1,11 +1,9 @@
-var height = window.innerHeight;
-var width = window.innerWidth;
 var pi = Math.PI;
 
 var canvas = document.getElementById("canvas");
 var ctx = canvas.getContext("2d");
-canvas.setAttribute("width", width);
-canvas.setAttribute("height", height);
+canvas.setAttribute("width", window.innerWidth);
+canvas.setAttribute("height", window.innerHeight);
 
 document.addEventListener('contextmenu', event => event.preventDefault());
 
@@ -17,6 +15,38 @@ var gravity = false;
 var collision = true;
 var pause = false;
 var clear = true;
+var ball = true;
+
+window.onload = mobile;
+var isMobile = {
+    Android: function() {
+        return navigator.userAgent.match(/Android/i);
+    },
+    BlackBerry: function() {
+        return navigator.userAgent.match(/BlackBerry/i);
+    },
+    iOS: function() {
+        return navigator.userAgent.match(/iPhone|iPad|iPod/i);
+    },
+    Opera: function() {
+        return navigator.userAgent.match(/Opera Mini/i);
+    },
+    Windows: function() {
+        return navigator.userAgent.match(/IEMobile/i);
+    },
+    any: function() {
+        return (isMobile.Android() || isMobile.BlackBerry() || isMobile.iOS() || isMobile.Opera() || isMobile.Windows());
+    }
+}
+
+function mobile() {
+    if(isMobile.any()){
+        document.getElementById("info").style.display = "none";
+        //canvas.setAttribute("width", window.innerWidth);
+        //canvas.setAttribute("height", window.innerHeight*0.95);
+        //document.getElementById("navBar").style.display = "block";
+    }
+}
 
 function edgeCollision(ball) {
     if (ball.x - ball.radius + ball.dx < 0 ||
@@ -225,14 +255,16 @@ var yPosRightMove; var yPosRightDown; var yPosRightUp; var rightHeld = false;
 var scrollTimer = 0; var xPosScroll; var yPosScroll;
 var standardRadiusBalls = 30; 
 
+
+if(isMobile.any()){}else{
 canvas.onmousedown = function(e){
     if(e.button == 0){
         xPosLeftDown = e.clientX; yPosLeftDown = e.clientY; leftHeld = true;
 
         if(xPosLeftDown < standardRadiusBalls){xPosLeftDown = standardRadiusBalls;}
-        if(xPosLeftDown > width - standardRadiusBalls){xPosLeftDown = width - standardRadiusBalls;}
+        if(xPosLeftDown > canvas.width - standardRadiusBalls){xPosLeftDown = canvas.width - standardRadiusBalls;}
         if(yPosLeftDown < standardRadiusBalls){yPosLeftDown = standardRadiusBalls;}
-        if(yPosLeftDown > height - standardRadiusBalls){yPosLeftDown = height - standardRadiusBalls;}
+        if(yPosLeftDown > canvas.height - standardRadiusBalls){yPosLeftDown = canvas.height - standardRadiusBalls;}
     }
     else if(e.button == 2){
         xPosRightDown = e.clientX; yPosRightDown = e.clientY; rightHeld = true;
@@ -306,6 +338,7 @@ canvas.onwheel = function(e){
 function scrollStop() {
     xPosScroll = "."; yPosScroll = ".";
 }
+}
 
 document.onkeydown = checkKeyDown;
 
@@ -341,5 +374,72 @@ function checkKeyDown(e) {
         pause = !pause;
     }
 }
+
+var touchDownX; var touchDownY;
+
+body.ontouchstart = function(e){
+    if(e.touches[0].clientY < canvas.height){
+        if(ball == true){
+            xPosLeftDown = e.touches[0].clientX; yPosLeftDown = e.touches[0].clientY; leftHeld = true;
+            xPosLeftMove = e.touches[0].clientX; yPosLeftMove = e.touches[0].clientY;
+
+            if(xPosLeftDown < standardRadiusBalls){xPosLeftDown = standardRadiusBalls;}
+            if(xPosLeftDown > canvas.width - standardRadiusBalls){xPosLeftDown = canvas.width - standardRadiusBalls;}
+            if(yPosLeftDown < standardRadiusBalls){yPosLeftDown = standardRadiusBalls;}
+            if(yPosLeftDown > canvas.height - standardRadiusBalls){yPosLeftDown = canvas.height - standardRadiusBalls;}
+        }
+        else{
+            xPosRightDown = e.touches[0].clientX; yPosRightDown = e.touches[0].clientY; rightHeld = true;
+            xPosRightMove = e.touches[0].clientX; yPosRightMove = e.touches[0].clientY;
+        }
+    }
+    else {
+        touchDownX = e.touches[0].clientX; touchDownY = e.touches[0].clientY;
+    }
+};
+
+body.ontouchend = function(e){
+    if(ball == true){
+        var click = true;
+        for (var ball1 in ballArray) {
+            if (distance2(ballArray[ball1].x, ballArray[ball1].y, xPosLeftDown, yPosLeftDown) < ballArray[ball1].radius){
+                click = false;
+            }
+        }
+        if(click){
+            xPosLeftUp = event.changedTouches[event.changedTouches.length-1].pageX; yPosLeftUp = event.changedTouches[event.changedTouches.length-1].pageY; leftHeld = false;
+
+            ballArray[ballArray.length] = new Ball(xPosLeftDown, yPosLeftDown, -(xPosLeftDown-xPosLeftUp)/30, -(yPosLeftDown-yPosLeftUp)/30, standardRadiusBalls);
+
+            xPosLeftDown = "."; yPosLeftDown = ".";
+        }
+        else{
+            xPosLeftDown = "."; yPosLeftDown = ".";
+        }
+    }
+    else{
+        xPosRightUp = e.clientX; yPosRightUp = e.clientY; rightHeld = false;
+        xPosRightMove = "."; yPosRightMove = ".";
+
+        wallArray[wallArray.length] = new Wall(xPosRightDown, yPosRightDown, xPosRightUp, yPosRightUp);
+
+        xPosRightDown = "."; yPosRightDown = ".";
+    }
+};
+
+body.ontouchmove = function(e){
+    xPosLeftMove = e.touches[0].clientX; yPosLeftMove = e.touches[0].clientY;
+    xPosRightMove = e.touches[0].clientX; yPosRightMove = e.touches[0].clientY;
+
+    if(rightHeld){
+        xPosRightMove = e.touches[0].clientX; yPosRightMove = e.touches[0].clientY;
+    }
+};
+
+window.addEventListener("orientationchange", function() {
+    var tempHeight = canvas.width; var tempWidth = canvas.height;
+    canvas.setAttribute("width", tempWidth);
+    canvas.setAttribute("height",tempHeight);
+}, false);
 
 draw();
