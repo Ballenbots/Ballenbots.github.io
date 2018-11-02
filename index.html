@@ -17,23 +17,97 @@
         position: absolute;
     }
     #info {
-      position: absolute;
-      margin-top: 1vw;
-      margin-left: 1vw;
-      -webkit-touch-callout: none;
-      -webkit-user-select: none;
-      -khtml-user-select: none;
-      -moz-user-select: none;
-      -ms-user-select: none;
-      user-select: none;
+        position: absolute;
+        margin-top: 1vw;
+        margin-left: 1vw;
+        -webkit-touch-callout: none;
+        -webkit-user-select: none;
+        -khtml-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+        user-select: none;
     }
     #navBar {
-      display: none;
-      position: absolute;
-      height: 5%;
-      width: 100%;
-      bottom: 0;
-      border-top: 1px solid black;
+        display: none;
+        position: absolute;
+        height: 25px;
+        width: 25px;
+        top: 25px;
+        right: 25px;
+        border: 3px solid black;
+        border-radius: 5px;
+        z-index: 1;
+        background-color: white;
+    }
+    .icon {
+        position: absolute;
+        right: 0;
+        width: 25px;
+        height: 25px;
+    }
+    .icon2 {
+        display: none;
+        margin-right: 130px;
+    }
+    .icon3 {
+        display: none;
+        margin-right: 160px;
+    }
+    .icon4 {
+        display: none;
+        margin-right: 190px;
+    }
+    .icon5 {
+        display: none;
+        margin-right: 220px;
+    }
+    #checkboxes1 {
+        position: absolute;
+        width: 40%;
+        left: 2%; 
+        display: none;
+        margin-top: 30px;
+    }
+    #checkboxes2 {
+        position: absolute;
+        width: 40%;
+        right: 2%; 
+        display: none;
+        margin-top: 30px;
+    }
+
+    .slidecontainer {
+        width: 100%;
+    }
+    .slider {
+        margin-top: 7.5px;
+        display: none;
+        position: absolute;
+        right: 0;
+        margin-right: 35px;
+        -webkit-appearance: none;
+        width: 80px;
+        height: 10px;
+        border-radius: 5px;
+        background: #d3d3d3;
+        outline: none;
+        -webkit-transition: .2s;
+    }
+    .slider::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        background: black;
+        cursor: pointer;
+    }
+    .slider::-moz-range-thumb {
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        background: black;
+        cursor: pointer;
     }
     </style>
 </head>
@@ -55,7 +129,28 @@
     </div>
 
     <div id="navBar">
-        
+        <img src="icons/HamburgerMenu.png" class="icon icon1" onclick="navBarOpenHorizontal()"/>
+
+        <div>
+            <input type="range" min="10" max="100" value="30" class="slider" id="myRange">
+        </div>
+
+        <img src="icons/Circle.png" id="icon21" class="icon icon2" onclick="line()"/>
+        <img src="icons/Line.png" id="icon22" class="icon icon2" onclick="circle()"/>
+        <img src="icons/Reset.png" id="icon3" class="icon icon3" onclick="reset()"/>
+        <img src="icons/Pause.png" id="icon41" class="icon icon4" onclick="pause1()"/>
+        <img src="icons/Play.png" id="icon42" class="icon icon4" onclick="play1()"/>
+        <img src="icons/Down.png" id="icon51" class="icon icon5" onclick="navBarOpenVertical()"/>
+        <img src="icons/Up.png" id="icon52" class="icon icon5" onclick="navBarCloseVertical()"/>
+
+        <div id="checkboxes1">
+            <input type="checkbox" name="Gravity" value="true" onchange="Gravity()"> Gravity<br>
+            <input type="checkbox" name="Collision" value="true" checked onchange="Collision()"> Collision
+        </div>
+        <div id="checkboxes2">
+            <input type="checkbox" name="Friction" value="true" checked onchange="Friction()"> Friction<br>
+            <input type="checkbox" name="Art" value="true" onchange="Art()"> Art
+        </div>
     </div>
 
     <canvas id="canvas"></canvas>

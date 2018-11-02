@@ -42,9 +42,7 @@ var isMobile = {
 function mobile() {
     if(isMobile.any()){
         document.getElementById("info").style.display = "none";
-        //canvas.setAttribute("width", window.innerWidth);
-        //canvas.setAttribute("height", window.innerHeight*0.95);
-        //document.getElementById("navBar").style.display = "block";
+        document.getElementById("navBar").style.display = "block";
     }
 }
 
@@ -377,7 +375,7 @@ function checkKeyDown(e) {
 
 var touchDownX; var touchDownY;
 
-body.ontouchstart = function(e){
+canvas.ontouchstart = function(e){
     if(e.touches[0].clientY < canvas.height){
         if(ball == true){
             xPosLeftDown = e.touches[0].clientX; yPosLeftDown = e.touches[0].clientY; leftHeld = true;
@@ -398,7 +396,7 @@ body.ontouchstart = function(e){
     }
 };
 
-body.ontouchend = function(e){
+canvas.ontouchend = function(e){
     if(ball == true){
         var click = true;
         for (var ball1 in ballArray) {
@@ -418,7 +416,7 @@ body.ontouchend = function(e){
         }
     }
     else{
-        xPosRightUp = e.clientX; yPosRightUp = e.clientY; rightHeld = false;
+        xPosRightUp = event.changedTouches[event.changedTouches.length-1].pageX; yPosRightUp = event.changedTouches[event.changedTouches.length-1].pageY; rightHeld = false;
         xPosRightMove = "."; yPosRightMove = ".";
 
         wallArray[wallArray.length] = new Wall(xPosRightDown, yPosRightDown, xPosRightUp, yPosRightUp);
@@ -427,7 +425,7 @@ body.ontouchend = function(e){
     }
 };
 
-body.ontouchmove = function(e){
+canvas.ontouchmove = function(e){
     xPosLeftMove = e.touches[0].clientX; yPosLeftMove = e.touches[0].clientY;
     xPosRightMove = e.touches[0].clientX; yPosRightMove = e.touches[0].clientY;
 
@@ -439,5 +437,100 @@ body.ontouchmove = function(e){
 window.addEventListener("orientationchange", function() {
     location.reload();
 }, false);
+
+var navCheck = false;
+
+function navBarOpenHorizontal() {
+    navCheck = !navCheck;
+    if(navCheck){
+        document.getElementById("navBar").style.width = "250px";
+        document.getElementById("icon21").style.display = "block";
+        document.getElementById("icon3").style.display = "block";
+        document.getElementById("icon41").style.display = "block";
+        document.getElementById("icon51").style.display = "block";
+        document.getElementById("myRange").style.display = "block";
+    }
+    else{
+        document.getElementById("navBar").style.width = "25px";
+        document.getElementById("navBar").style.height = "25px";
+        document.getElementById("icon21").style.display = "none";
+        document.getElementById("icon22").style.display = "none";
+        document.getElementById("icon3").style.display = "none";
+        document.getElementById("icon41").style.display = "none";
+        document.getElementById("icon42").style.display = "none";
+        document.getElementById("icon51").style.display = "none";
+        document.getElementById("icon52").style.display = "none";
+        document.getElementById("myRange").style.display = "none";
+        document.getElementById("checkboxes1").style.display = "none";
+        document.getElementById("checkboxes2").style.display = "none";
+    }
+}
+
+function line() {
+    document.getElementById("icon22").style.display = "block";
+    document.getElementById("icon21").style.display = "none";
+    ball = false;
+}
+
+function circle() {
+    document.getElementById("icon21").style.display = "block";
+    document.getElementById("icon22").style.display = "none";
+    ball = true;
+}
+
+function reset() {
+    ballArray = [];
+    wallArray = [];
+}
+
+function pause1() {
+    document.getElementById("icon42").style.display = "block";
+    document.getElementById("icon41").style.display = "none";
+    pause = !pause;
+}
+
+function play1() {
+    document.getElementById("icon41").style.display = "block";
+    document.getElementById("icon42").style.display = "none";
+    pause = !pause;
+}
+
+function navBarOpenVertical() {
+    document.getElementById("icon52").style.display = "block";
+    document.getElementById("icon51").style.display = "none";
+    document.getElementById("navBar").style.height = "70px";
+    document.getElementById("checkboxes1").style.display = "block";
+    document.getElementById("checkboxes2").style.display = "block";
+}
+
+function navBarCloseVertical() {
+    document.getElementById("icon51").style.display = "block";
+    document.getElementById("icon52").style.display = "none";
+    document.getElementById("navBar").style.height = "25px";
+    document.getElementById("checkboxes1").style.display = "none";
+    document.getElementById("checkboxes2").style.display = "none";
+}
+
+var slider = document.getElementById("myRange");
+
+slider.oninput = function() {
+    standardRadiusBalls = slider.value;
+}
+
+function Gravity() {
+    gravity = !gravity;
+}
+
+function Collision() {
+    collision = !collision;
+}
+
+function Friction() {
+    friction = !friction;
+}
+
+function Art() {
+    clear = !clear;
+}
 
 draw();
