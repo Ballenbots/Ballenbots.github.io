@@ -498,7 +498,7 @@ function play1() {
 function navBarOpenVertical() {
     document.getElementById("icon52").style.display = "block";
     document.getElementById("icon51").style.display = "none";
-    document.getElementById("navBar").style.height = "70px";
+    document.getElementById("navBar").style.height = "75px";
     document.getElementById("checkboxes1").style.display = "block";
     document.getElementById("checkboxes2").style.display = "block";
 }
