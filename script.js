@@ -383,10 +383,10 @@ body.ontouchstart = function(e){
             xPosLeftDown = e.touches[0].clientX; yPosLeftDown = e.touches[0].clientY; leftHeld = true;
             xPosLeftMove = e.touches[0].clientX; yPosLeftMove = e.touches[0].clientY;
 
-            if(xPosLeftDown < standardRadiusBalls){xPosLeftDown = standardRadiusBalls;}
-            if(xPosLeftDown > canvas.width - standardRadiusBalls){xPosLeftDown = canvas.width - standardRadiusBalls;}
-            if(yPosLeftDown < standardRadiusBalls){yPosLeftDown = standardRadiusBalls;}
-            if(yPosLeftDown > canvas.height - standardRadiusBalls){yPosLeftDown = canvas.height - standardRadiusBalls;}
+            if(xPosLeftDown < standardRadiusBalls/2){xPosLeftDown = standardRadiusBalls/2;}
+            if(xPosLeftDown > canvas.width - standardRadiusBalls/2){xPosLeftDown = canvas.width - standardRadiusBalls/2;}
+            if(yPosLeftDown < standardRadiusBalls/2){yPosLeftDown = standardRadiusBalls/2;}
+            if(yPosLeftDown > canvas.height - standardRadiusBalls/2){yPosLeftDown = canvas.height - standardRadiusBalls/2;}
         }
         else{
             xPosRightDown = e.touches[0].clientX; yPosRightDown = e.touches[0].clientY; rightHeld = true;
@@ -437,9 +437,7 @@ body.ontouchmove = function(e){
 };
 
 window.addEventListener("orientationchange", function() {
-    var tempHeight = canvas.width; var tempWidth = canvas.height;
-    canvas.setAttribute("width", tempWidth);
-    canvas.setAttribute("height",tempHeight);
+    location.reload();
 }, false);
 
 draw();
