@@ -409,7 +409,7 @@ body.ontouchend = function(e){
         if(click){
             xPosLeftUp = event.changedTouches[event.changedTouches.length-1].pageX; yPosLeftUp = event.changedTouches[event.changedTouches.length-1].pageY; leftHeld = false;
 
-            ballArray[ballArray.length] = new Ball(xPosLeftDown, yPosLeftDown, -(xPosLeftDown-xPosLeftUp)/30, -(yPosLeftDown-yPosLeftUp)/30, standardRadiusBalls);
+            ballArray[ballArray.length] = new Ball(xPosLeftDown, yPosLeftDown, -(xPosLeftDown-xPosLeftUp)/30, -(yPosLeftDown-yPosLeftUp)/30, standardRadiusBalls/2);
 
             xPosLeftDown = "."; yPosLeftDown = ".";
         }
