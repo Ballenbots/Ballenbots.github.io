@@ -16,6 +16,7 @@ var collision = true;
 var pause = false;
 var clear = true;
 var ball = true;
+var standardRadiusBalls = 30; 
 
 window.onload = mobile;
 var isMobile = {
@@ -219,7 +220,7 @@ function drawobjects() {
         ctx.fillStyle = "Black";
         ctx.fill();
         ctx.beginPath();
-        ctx.arc(xPosScroll,yPosScroll,standardRadiusBalls,0,pi*2);
+        if(isMobile.any()){ctx.arc(xPosScroll,yPosScroll,standardRadiusBalls/2,0,pi*2);}else{ctx.arc(xPosScroll,yPosScroll,standardRadiusBalls,0,pi*2);}
         ctx.closePath();
         ctx.lineWidth = 1;
         ctx.stroke();
@@ -251,7 +252,6 @@ var yPosLeftMove; var yPosLeftDown; var yPosLeftUp; var leftHeld = false;
 var xPosRightMove; var xPosRightDown; var xPosRightUp;
 var yPosRightMove; var yPosRightDown; var yPosRightUp; var rightHeld = false;
 var scrollTimer = 0; var xPosScroll; var yPosScroll;
-var standardRadiusBalls = 30; 
 
 
 if(isMobile.any()){}else{
@@ -332,10 +332,10 @@ canvas.onwheel = function(e){
         if(standardRadiusBalls > 12){standardRadiusBalls -= 2;}
     }
 };
+}
 
 function scrollStop() {
     xPosScroll = "."; yPosScroll = ".";
-}
 }
 
 document.onkeydown = checkKeyDown;
@@ -350,6 +350,14 @@ function checkKeyDown(e) {
     if (e.keyCode == '82'){ //r
         ballArray = [];
         wallArray = [];
+        var friction = true;
+        var gravity = false;
+        var collision = true;
+        var pause = false;
+        var clear = true;
+        var ball = true;
+        var standardRadiusBalls = 30; 
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
     }
     if (e.keyCode == '65'){ //a
         clear = !clear;
@@ -439,15 +447,16 @@ window.addEventListener("orientationchange", function() {
 }, false);
 
 var navCheck = false;
+var navCheck2 = false;
 
 function navBarOpenHorizontal() {
     navCheck = !navCheck;
     if(navCheck){
         document.getElementById("navBar").style.width = "250px";
-        document.getElementById("icon21").style.display = "block";
+        if(ball){document.getElementById("icon21").style.display = "block";}else{document.getElementById("icon22").style.display = "block";}
         document.getElementById("icon3").style.display = "block";
-        document.getElementById("icon41").style.display = "block";
-        document.getElementById("icon51").style.display = "block";
+        if(pause){document.getElementById("icon42").style.display = "block";}else{document.getElementById("icon41").style.display = "block";}
+        if(navCheck2 == false){document.getElementById("icon51").style.display = "block";}else{document.getElementById("icon52").style.display = "block"; document.getElementById("navBar").style.height = "70px"; document.getElementById("checkboxes1").style.display = "block"; document.getElementById("checkboxes2").style.display = "block";}
         document.getElementById("myRange").style.display = "block";
     }
     else{
@@ -481,6 +490,14 @@ function circle() {
 function reset() {
     ballArray = [];
     wallArray = [];
+    var friction = true;
+    var gravity = false;
+    var collision = true;
+    var pause = false;
+    var clear = true;
+    var ball = true;
+    var standardRadiusBalls = 30; 
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
 }
 
 function pause1() {
@@ -496,14 +513,16 @@ function play1() {
 }
 
 function navBarOpenVertical() {
+    navCheck2 = true;
     document.getElementById("icon52").style.display = "block";
     document.getElementById("icon51").style.display = "none";
-    document.getElementById("navBar").style.height = "85px";
+    document.getElementById("navBar").style.height = "70px";
     document.getElementById("checkboxes1").style.display = "block";
     document.getElementById("checkboxes2").style.display = "block";
 }
 
 function navBarCloseVertical() {
+    navCheck2 = false;
     document.getElementById("icon51").style.display = "block";
     document.getElementById("icon52").style.display = "none";
     document.getElementById("navBar").style.height = "25px";
@@ -514,6 +533,13 @@ function navBarCloseVertical() {
 var slider = document.getElementById("myRange");
 
 slider.oninput = function() {
+    if (scrollTimer != 0){
+        clearTimeout(scrollTimer);
+    }
+    scrollTimer = window.setTimeout("scrollStop()", 250);
+
+    xPosScroll = canvas.width/2; yPosScroll = canvas.height/2;
+
     standardRadiusBalls = slider.value;
 }
 
