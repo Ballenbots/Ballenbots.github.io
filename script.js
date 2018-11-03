@@ -456,7 +456,7 @@ function navBarOpenHorizontal() {
         if(ball){document.getElementById("icon21").style.display = "block";}else{document.getElementById("icon22").style.display = "block";}
         document.getElementById("icon3").style.display = "block";
         if(pause){document.getElementById("icon42").style.display = "block";}else{document.getElementById("icon41").style.display = "block";}
-        if(navCheck2 == false){document.getElementById("icon51").style.display = "block";}else{document.getElementById("icon52").style.display = "block"; document.getElementById("navBar").style.height = "70px"; document.getElementById("checkboxes1").style.display = "block"; document.getElementById("checkboxes2").style.display = "block";}
+        if(navCheck2 == false){document.getElementById("icon51").style.display = "block";}else{document.getElementById("icon52").style.display = "block"; document.getElementById("navBar").style.height = "80px"; document.getElementById("checkboxes1").style.display = "block"; document.getElementById("checkboxes2").style.display = "block";}
         document.getElementById("myRange").style.display = "block";
     }
     else{
@@ -516,7 +516,7 @@ function navBarOpenVertical() {
     navCheck2 = true;
     document.getElementById("icon52").style.display = "block";
     document.getElementById("icon51").style.display = "none";
-    document.getElementById("navBar").style.height = "70px";
+    document.getElementById("navBar").style.height = "80px";
     document.getElementById("checkboxes1").style.display = "block";
     document.getElementById("checkboxes2").style.display = "block";
 }
