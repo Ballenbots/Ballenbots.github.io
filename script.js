@@ -350,13 +350,6 @@ function checkKeyDown(e) {
     if (e.keyCode == '82'){ //r
         ballArray = [];
         wallArray = [];
-        var friction = true;
-        var gravity = false;
-        var collision = true;
-        var pause = false;
-        var clear = true;
-        var ball = true;
-        var standardRadiusBalls = 30; 
         ctx.clearRect(0, 0, canvas.width, canvas.height);
     }
     if (e.keyCode == '65'){ //a
@@ -456,7 +449,7 @@ function navBarOpenHorizontal() {
         if(ball){document.getElementById("icon21").style.display = "block";}else{document.getElementById("icon22").style.display = "block";}
         document.getElementById("icon3").style.display = "block";
         if(pause){document.getElementById("icon42").style.display = "block";}else{document.getElementById("icon41").style.display = "block";}
-        if(navCheck2 == false){document.getElementById("icon51").style.display = "block";}else{document.getElementById("icon52").style.display = "block"; document.getElementById("navBar").style.height = "80px"; document.getElementById("checkboxes1").style.display = "block"; document.getElementById("checkboxes2").style.display = "block";}
+        if(navCheck2 == false){document.getElementById("icon51").style.display = "block";}else{document.getElementById("icon52").style.display = "block"; document.getElementById("navBar").style.height = "70px"; document.getElementById("checkboxes1").style.display = "block"; document.getElementById("checkboxes2").style.display = "block";}
         document.getElementById("myRange").style.display = "block";
     }
     else{
@@ -490,13 +483,6 @@ function circle() {
 function reset() {
     ballArray = [];
     wallArray = [];
-    var friction = true;
-    var gravity = false;
-    var collision = true;
-    var pause = false;
-    var clear = true;
-    var ball = true;
-    var standardRadiusBalls = 30; 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 }
 
@@ -516,7 +502,7 @@ function navBarOpenVertical() {
     navCheck2 = true;
     document.getElementById("icon52").style.display = "block";
     document.getElementById("icon51").style.display = "none";
-    document.getElementById("navBar").style.height = "80px";
+    document.getElementById("navBar").style.height = "70px";
     document.getElementById("checkboxes1").style.display = "block";
     document.getElementById("checkboxes2").style.display = "block";
 }
@@ -544,19 +530,23 @@ slider.oninput = function() {
 }
 
 function Gravity() {
-    gravity = !gravity;
+    if(document.getElementById("Gravity").checked == true){gravity = true;}
+    else{gravity = false;}
 }
 
 function Collision() {
-    collision = !collision;
+    if(document.getElementById("Collision").checked == true){collision = true;}
+    else{collision = false;}
 }
 
 function Friction() {
-    friction = !friction;
+    if(document.getElementById("Friction").checked == true){friction = true;}
+    else{friction = false;}
 }
 
 function Art() {
-    clear = !clear;
+    if(document.getElementById("Art").checked == true){clear = false;}
+    else{clear = true;}
 }
 
 draw();
