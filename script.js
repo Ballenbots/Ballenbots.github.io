@@ -85,14 +85,32 @@ function wallCollision(ball, wall) {
     if(t<0){x=wall.x1;y=wall.y1;}
     if(t>1){x=wall.x2;y=wall.y2;}
 
-    if(distanceNextFrame2(ball, x, y) < ball.radius + 2.5){
+    var collisionDetectionDistance = 2.5;
+
+    if(100 - ball.radius + ball.speed()*2 > 100){
+        collisionDetectionDistance = 10;
+    }
+
+    if(100 - ball.radius + ball.speed()*2 > 150){
+        collisionDetectionDistance = 25;
+    }
+
+    if(distanceNextFrame2(ball, x, y) < ball.radius + collisionDetectionDistance){
         var angleBall = ball.angle();
         var angleWall = wall.angle();
         if(distanceNextFrame2(ball, wall.x1, wall.y1) < ball.radius + 2.5){
             angleWall = Math.atan2(ball.y - wall.y1, ball.x - wall.x1) - pi/2;
+            if(Math.abs(angleWall + pi/2) > Math.abs(wall.angle() + pi/2)){
+                angleWall = wall.angle();
+                alert();
+            }
         }
         if(distanceNextFrame2(ball, wall.x2, wall.y2) < ball.radius + 2.5){
             angleWall = Math.atan2(ball.y - wall.y2, ball.x - wall.x2) - pi/2;
+            if(Math.abs(angleWall + pi/2) < Math.abs(wall.angle() + pi/2)){
+                angleWall = wall.angle();
+                alert();
+            }
         }
         var newAngle = angleWall*2 - angleBall;
         if(newAngle>=2*pi){newAngle-=2*pi;}
@@ -111,6 +129,12 @@ function wallCollision(ball, wall) {
     }
     else{
         ball.grav += 1;
+    }
+    if(distance2(ball.x, ball.y, x, y) < ball.radius){
+        var theta = Math.atan2((ball.y - y), (ball.x - x));
+        var overlap = ball.radius + 5 - distance2(ball.x, ball.y, x, y);
+        ball.x += overlap * Math.cos(theta);
+        ball.y += overlap * Math.sin(theta);
     }
 }
 
@@ -136,6 +160,21 @@ function ballCollision() {
                     ballArray[ball1].dy = dy1F;
                     ballArray[ball2].dx = dx2F;
                     ballArray[ball2].dy = dy2F;
+
+                    if(friction){ballArray[ball1].dx*=0.95; ballArray[ball1].dy*=0.95; ballArray[ball2].dx*=0.95; ballArray[ball2].dy*=0.95;}
+                }
+                if (ball1 !== ball2 && distance(ballArray[ball1], ballArray[ball2]) < ballArray[ball1].radius + ballArray[ball2].radius) {
+                    var theta = Math.atan2((ballArray[ball1].y - ballArray[ball2].y), (ballArray[ball1].x - ballArray[ball2].x));
+                    var overlap = ballArray[ball1].radius + ballArray[ball2].radius - distance (ballArray[ball1], ballArray[ball2]);
+                    var smallerobject = ballArray[ball1].radius < ballArray[ball2].radius ? ball1 : ball2
+                    ballArray[smallerobject].x -= overlap * Math.cos(theta);
+                    ballArray[smallerobject].y -= overlap * Math.sin(theta);
+                    if(ballArray[ball1].dy < 0){
+                        ballArray[ball1].grav = ".";
+                    }
+                    if(ballArray[ball2].dy < 0){
+                        ballArray[ball1].grav = ".";
+                    }
                 }
             }
         }
@@ -144,22 +183,6 @@ function ballCollision() {
             wallCollision(ballArray[ball1], wallArray[wall1]);
         }
     }   
-}
-
-function staticCollision() {
-    for (var ball1 in ballArray) {
-        for (var ball2 in ballArray) {
-            if (ball1 !== ball2 &&
-                distance(ballArray[ball1], ballArray[ball2]) < ballArray[ball1].radius + ballArray[ball2].radius)
-            {
-                var theta = Math.atan2((ballArray[ball1].y - ballArray[ball2].y), (ballArray[ball1].x - ballArray[ball2].x));
-                var overlap = ballArray[ball1].radius + ballArray[ball2].radius - distance (ballArray[ball1], ballArray[ball2]);
-                var smallerobject = ballArray[ball1].radius < ballArray[ball2].radius ? ball1 : ball2
-                ballArray[smallerobject].x -= overlap * Math.cos(theta);
-                ballArray[smallerobject].y -= overlap * Math.sin(theta);
-            }
-        }
-    }
 }
 
 function applyGravity() {
@@ -240,7 +263,6 @@ function draw() {
     if(gravity){applyGravity();}
     if(friction){applyFriction();}   
     moveBalls();
-    if(collision){staticCollision();}
     ballCollision();
     }
     drawobjects();
