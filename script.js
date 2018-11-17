@@ -85,17 +85,7 @@ function wallCollision(ball, wall) {
     if(t<0){x=wall.x1;y=wall.y1;}
     if(t>1){x=wall.x2;y=wall.y2;}
 
-    var collisionDetectionDistance = 2.5;
-
-    if(100 - ball.radius + ball.speed()*2 > 100){
-        collisionDetectionDistance = 10;
-    }
-
-    if(100 - ball.radius + ball.speed()*2 > 150){
-        collisionDetectionDistance = 25;
-    }
-
-    if(distanceNextFrame2(ball, x, y) < ball.radius + collisionDetectionDistance){
+    if(distanceNextFrame2(ball, x, y) < ball.radius + ball.speed()){
         var angleBall = ball.angle();
         var angleWall = wall.angle();
         if(distanceNextFrame2(ball, wall.x1, wall.y1) < ball.radius + 2.5){
@@ -158,8 +148,6 @@ function ballCollision() {
                     ballArray[ball1].dy = dy1F;
                     ballArray[ball2].dx = dx2F;
                     ballArray[ball2].dy = dy2F;
-
-                    if(friction){ballArray[ball1].dx*=0.95; ballArray[ball1].dy*=0.95; ballArray[ball2].dx*=0.95; ballArray[ball2].dy*=0.95;}
                 }
                 if (ball1 !== ball2 && distance(ballArray[ball1], ballArray[ball2]) < ballArray[ball1].radius + ballArray[ball2].radius) {
                     var theta = Math.atan2((ballArray[ball1].y - ballArray[ball2].y), (ballArray[ball1].x - ballArray[ball2].x));
