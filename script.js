@@ -85,7 +85,7 @@ function wallCollision(ball, wall) {
     if(t<0){x=wall.x1;y=wall.y1;}
     if(t>1){x=wall.x2;y=wall.y2;}
 
-    if(distanceNextFrame2(ball, x, y) < ball.radius + ball.speed()){
+    if(distanceNextFrame2(ball, x, y) < ball.radius){
         var angleBall = ball.angle();
         var angleWall = wall.angle();
         if(distanceNextFrame2(ball, wall.x1, wall.y1) < ball.radius + 2.5){
@@ -195,9 +195,11 @@ function applyFriction() {
 
 function moveBalls() {
     for (var ball in ballArray) {
-        ballArray[ball].x += ballArray[ball].dx;
-        ballArray[ball].y += ballArray[ball].dy;
-    }    
+        if(move!==ball){
+            ballArray[ball].x += ballArray[ball].dx;
+            ballArray[ball].y += ballArray[ball].dy;
+        }
+    }
 }
 
 function drawobjects() {
@@ -260,7 +262,7 @@ var yPosLeftMove; var yPosLeftDown; var yPosLeftUp; var leftHeld = false;
 var xPosRightMove; var xPosRightDown; var xPosRightUp;
 var yPosRightMove; var yPosRightDown; var yPosRightUp; var rightHeld = false;
 var scrollTimer = 0; var xPosScroll; var yPosScroll;
-
+var move = false;
 
 if(isMobile.any()){}else{
 canvas.onmousedown = function(e){
@@ -271,6 +273,13 @@ canvas.onmousedown = function(e){
         if(xPosLeftDown > canvas.width - standardRadiusBalls){xPosLeftDown = canvas.width - standardRadiusBalls;}
         if(yPosLeftDown < standardRadiusBalls){yPosLeftDown = standardRadiusBalls;}
         if(yPosLeftDown > canvas.height - standardRadiusBalls){yPosLeftDown = canvas.height - standardRadiusBalls;}
+
+        for (var ball1 in ballArray) {
+            if (distance2(ballArray[ball1].x, ballArray[ball1].y, xPosLeftDown, yPosLeftDown) < ballArray[ball1].radius){
+                xPosLeftDown = "."; yPosLeftDown = ".";
+                move = ball1;
+            }
+        }
     }
     else if(e.button == 2){
         xPosRightDown = e.clientX; yPosRightDown = e.clientY; rightHeld = true;
@@ -289,21 +298,14 @@ canvas.onmousedown = function(e){
 
 canvas.onmouseup = function(e){
     if(e.button == 0){
-        var click = true;
-        for (var ball1 in ballArray) {
-            if (distance2(ballArray[ball1].x, ballArray[ball1].y, xPosLeftDown, yPosLeftDown) < ballArray[ball1].radius){
-                click = false;
-            }
-        }
-        if(click){
-            xPosLeftUp = e.clientX; yPosLeftUp = e.clientY; leftHeld = false;
+        xPosLeftUp = e.clientX; yPosLeftUp = e.clientY; leftHeld = false;
 
-            ballArray[ballArray.length] = new Ball(xPosLeftDown, yPosLeftDown, -(xPosLeftDown-xPosLeftUp)/30, -(yPosLeftDown-yPosLeftUp)/30, standardRadiusBalls);
+        ballArray[ballArray.length] = new Ball(xPosLeftDown, yPosLeftDown, -(xPosLeftDown-xPosLeftUp)/30, -(yPosLeftDown-yPosLeftUp)/30, standardRadiusBalls);
 
-            xPosLeftDown = "."; yPosLeftDown = ".";
-        }
-        else{
-            xPosLeftDown = "."; yPosLeftDown = ".";
+        xPosLeftDown = "."; yPosLeftDown = ".";
+
+        if(move){
+            move = false;
         }
     }
     else if(e.button == 2){
@@ -316,12 +318,24 @@ canvas.onmouseup = function(e){
     }
 };
 
+var moveX; var moveY;
+
 canvas.onmousemove = function(e){
     xPosLeftMove = e.clientX; yPosLeftMove = e.clientY;
     xPosRightMove = e.clientX; yPosRightMove = e.clientY;
 
     if(rightHeld){
         xPosRightMove = e.clientX; yPosRightMove = e.clientY;
+    }
+
+    if(move){
+        ballArray[move].x = e.clientX;
+        ballArray[move].y = e.clientY;
+
+        ballArray[move].dx = e.clientX - moveX;
+        ballArray[move].dy = e.clientY - moveY;
+
+        moveX = e.clientX; moveY = e.clientY;
     }
 };
 
@@ -337,7 +351,7 @@ canvas.onwheel = function(e){
         if(standardRadiusBalls < 99){standardRadiusBalls += 2;}
     }
     if(e.deltaY > 0){
-        if(standardRadiusBalls > 12){standardRadiusBalls -= 2;}
+        if(standardRadiusBalls > 11){standardRadiusBalls -= 2;}
     }
 };
 }
@@ -394,6 +408,13 @@ canvas.ontouchstart = function(e){
             if(xPosLeftDown > canvas.width - standardRadiusBalls/2){xPosLeftDown = canvas.width - standardRadiusBalls/2;}
             if(yPosLeftDown < standardRadiusBalls/2){yPosLeftDown = standardRadiusBalls/2;}
             if(yPosLeftDown > canvas.height - standardRadiusBalls/2){yPosLeftDown = canvas.height - standardRadiusBalls/2;}
+
+            for (var ball1 in ballArray) {
+                if (distance2(ballArray[ball1].x, ballArray[ball1].y, xPosLeftDown, yPosLeftDown) < ballArray[ball1].radius){
+                    xPosLeftDown = "."; yPosLeftDown = ".";
+                    move = ball1;
+                }
+            }
         }
         else{
             xPosRightDown = e.touches[0].clientX; yPosRightDown = e.touches[0].clientY; rightHeld = true;
@@ -407,21 +428,14 @@ canvas.ontouchstart = function(e){
 
 canvas.ontouchend = function(e){
     if(ball == true){
-        var click = true;
-        for (var ball1 in ballArray) {
-            if (distance2(ballArray[ball1].x, ballArray[ball1].y, xPosLeftDown, yPosLeftDown) < ballArray[ball1].radius){
-                click = false;
-            }
-        }
-        if(click){
-            xPosLeftUp = event.changedTouches[event.changedTouches.length-1].pageX; yPosLeftUp = event.changedTouches[event.changedTouches.length-1].pageY; leftHeld = false;
+        xPosLeftUp = event.changedTouches[event.changedTouches.length-1].pageX; yPosLeftUp = event.changedTouches[event.changedTouches.length-1].pageY; leftHeld = false;
 
-            ballArray[ballArray.length] = new Ball(xPosLeftDown, yPosLeftDown, -(xPosLeftDown-xPosLeftUp)/30, -(yPosLeftDown-yPosLeftUp)/30, standardRadiusBalls/2);
+        ballArray[ballArray.length] = new Ball(xPosLeftDown, yPosLeftDown, -(xPosLeftDown-xPosLeftUp)/30, -(yPosLeftDown-yPosLeftUp)/30, standardRadiusBalls/2);
 
-            xPosLeftDown = "."; yPosLeftDown = ".";
-        }
-        else{
-            xPosLeftDown = "."; yPosLeftDown = ".";
+        xPosLeftDown = "."; yPosLeftDown = ".";
+
+        if(move){
+            move = false;
         }
     }
     else{
@@ -434,12 +448,24 @@ canvas.ontouchend = function(e){
     }
 };
 
+var moveX; var moveY;
+
 canvas.ontouchmove = function(e){
     xPosLeftMove = e.touches[0].clientX; yPosLeftMove = e.touches[0].clientY;
     xPosRightMove = e.touches[0].clientX; yPosRightMove = e.touches[0].clientY;
 
     if(rightHeld){
         xPosRightMove = e.touches[0].clientX; yPosRightMove = e.touches[0].clientY;
+    }
+
+    if(move){
+        ballArray[move].x = e.touches[0].clientX;
+        ballArray[move].y = e.touches[0].clientY;
+
+        ballArray[move].dx = e.touches[0].clientX - moveX;
+        ballArray[move].dy = e.touches[0].clientY - moveY;
+
+        moveX = e.touches[0].clientX; moveY = e.touches[0].clientY;
     }
 };
 
