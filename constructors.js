@@ -14,11 +14,22 @@ function Ball(x, y, dx, dy, radius) {
         ctx.beginPath();
         ctx.arc(this.x, this.y, this.radius, 0, 2*Math.PI);
         ctx.closePath();
-        ctx.fillStyle = this.color.slice(0, -1) + ", 0.5)";;
+        ctx.fillStyle = this.color.slice(0, -1) + ", 0.5)";
         ctx.fill();
         ctx.lineWidth = 1;
         ctx.strokeStyle = this.color;
         ctx.stroke();
+
+        /*
+        ctx.beginPath();
+        ctx.closePath();
+        ctx.fillStyle = this.color.slice(0, -1) + ", 0.5)";
+        ctx.lineWidth = 1;
+        ctx.strokeStyle = this.color;
+        ctx.rect(this.x - this.radius, this.y - this.radius, this.radius*2, this.radius*2);
+        ctx.stroke();
+        ctx.fillRect(this.x - this.radius, this.y - this.radius, this.radius*2, this.radius*2);
+        */
     };
     this.speed = function() {
         return Math.sqrt(this.dx * this.dx + this.dy * this.dy);
