@@ -1,3 +1,4 @@
+var image = false;
 function Ball(x, y, dx, dy, radius) {
     this.radius = radius;
     this.dx = dx;
@@ -11,25 +12,26 @@ function Ball(x, y, dx, dy, radius) {
     this.wallAngle = 1;
     this.color = randomColor();
     this.draw = function() {
-        ctx.beginPath();
-        ctx.arc(this.x, this.y, this.radius, 0, 2*Math.PI);
-        ctx.closePath();
-        ctx.fillStyle = this.color.slice(0, -1) + ", 0.5)";
-        ctx.fill();
-        ctx.lineWidth = 1;
-        ctx.strokeStyle = this.color;
-        ctx.stroke();
-
-        /*
-        ctx.beginPath();
-        ctx.closePath();
-        ctx.fillStyle = this.color.slice(0, -1) + ", 0.5)";
-        ctx.lineWidth = 1;
-        ctx.strokeStyle = this.color;
-        ctx.rect(this.x - this.radius, this.y - this.radius, this.radius*2, this.radius*2);
-        ctx.stroke();
-        ctx.fillRect(this.x - this.radius, this.y - this.radius, this.radius*2, this.radius*2);
-        */
+        if(image){
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, this.radius, 0, 2*Math.PI);
+            ctx.closePath();
+            ctx.save();
+            ctx.clip();
+            var img = document.getElementById("img");
+            ctx.drawImage(img, this.x - this.radius, this.y - this.radius,this.radius*2,this.radius*2);
+            ctx.restore();
+        }
+        else{
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, this.radius, 0, 2*Math.PI);
+            ctx.closePath();
+            ctx.fillStyle = this.color.slice(0, -1) + ", 0.5)";
+            ctx.fill();
+            ctx.lineWidth = 1;
+            ctx.strokeStyle = this.color;
+            ctx.stroke();
+        }
     };
     this.speed = function() {
         return Math.sqrt(this.dx * this.dx + this.dy * this.dy);
@@ -119,4 +121,21 @@ function distance(a, b) {
 
 function distance2(x1, y1, x2, y2) {
     return Math.sqrt((x1 - x2)**2 + (y1 - y2)**2);
+}
+
+function previewFile(){
+    image = true;
+    var preview = document.querySelector('img');
+    var file    = document.querySelector('input[type=file]').files[0];
+    var reader  = new FileReader();
+
+    reader.onloadend = function () {
+       preview.src = reader.result;
+    }
+
+    if (file) {
+       reader.readAsDataURL(file);
+    } else {
+       preview.src = "";
+    }
 }

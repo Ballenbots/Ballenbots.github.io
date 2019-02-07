@@ -38,6 +38,12 @@
         border-radius: 5px;
         z-index: 1;
         background-color: white;
+        -webkit-touch-callout: none;
+        -webkit-user-select: none;
+        -khtml-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+        user-select: none;
     }
     .icon {
         position: absolute;
@@ -109,9 +115,17 @@
         background: black;
         cursor: pointer;
     }
+    #upload{
+        z-index: 1;
+        position: absolute;
+        bottom: 1vw;
+        left: 1vw;
+    }
     </style>
 </head>
 <body id="body">
+    <img src="" id="img" style="display: none">
+
     <div id="info">
         <font>
           Left click, hold and release to spawn balls <br>
@@ -127,6 +141,8 @@
           A to create Art
         </font>
     </div>
+
+    <input type="file" onchange="previewFile()" id="upload">
 
     <div id="navBar">
         <img src="icons/HamburgerMenu.png" class="icon icon1" onclick="navBarOpenHorizontal()"/>
