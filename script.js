@@ -446,10 +446,10 @@ canvas.ontouchstart = function(e){
         clicks["leftdown"] = {x:e.touches[0].clientX, y:e.touches[0].clientY};
         clicks["leftheld"] = true;
 
-        if(clicks["leftdown"].x < standardRadiusBalls){clicks["leftdown"].x = standardRadiusBalls;}
-        if(clicks["leftdown"].x > canvas.width - standardRadiusBalls){clicks["leftdown"].x = canvas.width - standardRadiusBalls;}
-        if(clicks["leftdown"].y < standardRadiusBalls){clicks["leftdown"].y = standardRadiusBalls;}
-        if(clicks["leftdown"].y > canvas.height - standardRadiusBalls){clicks["leftdown"].y = canvas.height - standardRadiusBalls;}
+        if(clicks["leftdown"].x < standardRadiusBalls/2){clicks["leftdown"].x = standardRadiusBalls/2;}
+        if(clicks["leftdown"].x > canvas.width - standardRadiusBalls/2){clicks["leftdown"].x = canvas.width - standardRadiusBalls/2;}
+        if(clicks["leftdown"].y < standardRadiusBalls/2){clicks["leftdown"].y = standardRadiusBalls/2;}
+        if(clicks["leftdown"].y > canvas.height - standardRadiusBalls/2){clicks["leftdown"].y = canvas.height - standardRadiusBalls/2;}
 
         for (var ball in balls) {
             if (Math.hypot(balls[ball].x - clicks["leftdown"].x, balls[ball].y - clicks["leftdown"].y) < balls[ball].radius){
