@@ -1,176 +1,62 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <meta id=" " name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=yes, minimal-ui">
-    <meta id=" " name="mobile-web-app-capable" content="yes">
-    <title>Bots</title>
-    <style>
-    body {
-        margin: 0;
-        padding: 0;
-        width: 100%;
-        height: 100%;
-        overscroll-behavior-y: contain;
-    }
-    #canvas {
-        display: block;
-        position: absolute;
-    }
-    #info {
-        position: absolute;
-        margin-top: 1vw;
-        margin-left: 1vw;
-        -webkit-touch-callout: none;
-        -webkit-user-select: none;
-        -khtml-user-select: none;
-        -moz-user-select: none;
-        -ms-user-select: none;
-        user-select: none;
-    }
-    #navBar {
-        display: none;
-        position: absolute;
-        height: 25px;
-        width: 25px;
-        top: 25px;
-        right: 25px;
-        border: 3px solid black;
-        border-radius: 5px;
-        z-index: 1;
-        background-color: white;
-        -webkit-touch-callout: none;
-        -webkit-user-select: none;
-        -khtml-user-select: none;
-        -moz-user-select: none;
-        -ms-user-select: none;
-        user-select: none;
-    }
-    .icon {
-        position: absolute;
-        right: 0;
-        width: 25px;
-        height: 25px;
-    }
-    .icon2 {
-        display: none;
-        margin-right: 130px;
-    }
-    .icon3 {
-        display: none;
-        margin-right: 160px;
-    }
-    .icon4 {
-        display: none;
-        margin-right: 190px;
-    }
-    .icon5 {
-        display: none;
-        margin-right: 220px;
-    }
-    #checkboxes1 {
-        position: absolute;
-        width: 40%;
-        left: 2%; 
-        display: none;
-        margin-top: 30px;
-    }
-    #checkboxes2 {
-        position: absolute;
-        width: 40%;
-        right: 2%; 
-        display: none;
-        margin-top: 30px;
-    }
-
-    .slidecontainer {
-        width: 100%;
-    }
-    .slider {
-        margin-top: 7.5px;
-        display: none;
-        position: absolute;
-        right: 0;
-        margin-right: 35px;
-        -webkit-appearance: none;
-        width: 80px;
-        height: 10px;
-        border-radius: 5px;
-        background: #d3d3d3;
-        outline: none;
-        -webkit-transition: .2s;
-    }
-    .slider::-webkit-slider-thumb {
-        -webkit-appearance: none;
-        appearance: none;
-        width: 20px;
-        height: 20px;
-        border-radius: 50%;
-        background: black;
-        cursor: pointer;
-    }
-    .slider::-moz-range-thumb {
-        width: 20px;
-        height: 20px;
-        border-radius: 50%;
-        background: black;
-        cursor: pointer;
-    }
-    #upload{
-        z-index: 1;
-        position: absolute;
-        bottom: 1vw;
-        left: 1vw;
-    }
-    </style>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=yes, minimal-ui">
+    <meta name="mobile-web-app-capable" content="yes">
+    <title>Balls</title>
+    <link rel="stylesheet" type="text/css" href="style.css">
 </head>
-<body id="body">
-    <img src="" id="img" style="display: none">
+<body>
+    <div id="overlay">
+        <div id="images">
 
-    <div id="info">
-        <font>
-          Left click, hold and release to spawn balls <br>
-          Right click, hold and release to draw walls <br>
-          Mousescroll to change ball radius <br>
-          P to Pause <br>
-          R to Reset <br>
-          N to spawn a New random ball <br>
-          F to toggle Friction <br>
-          G to toggle Gravity <br>
-          C to toggle ball to ball Collision <br>
-          H to Hide text <br>
-          A to create Art
-        </font>
-    </div>
-
-    <input type="file" onchange="previewFile()" id="upload">
-
-    <div id="navBar">
-        <img src="icons/HamburgerMenu.png" class="icon icon1" onclick="navBarOpenHorizontal()"/>
-
-        <div>
-            <input type="range" min="10" max="100" value="30" class="slider" id="myRange">
+        </div>
+        <div id="info">
+            <img src="icons/Info.png" id="icon6" class="icon icon6" onclick="info()"/>        
+            <font id="infoTxt">
+                Leftclick and drag to spawn balls<br>
+                Rightclick and drag to draw walls<br>
+                G to toggle Gravity: <b><a id="gravity">Off</a></b><br>
+                F to toggle Friction: <b><a id="friction">On</a></b><br>
+                C to toggle Collision: <b><a id="collision">On</a></b><br>
+                T to toggle Trail: <b><a id="trail">Off</a></b><br>
+                P to Pause<br>
+                R to Reset<br>
+                N to spawn a New random ball<br>
+                H to Hide the overlay<br>
+            </font>
         </div>
 
-        <img src="icons/Circle.png" id="icon21" class="icon icon2" onclick="line()"/>
-        <img src="icons/Line.png" id="icon22" class="icon icon2" onclick="circle()"/>
-        <img src="icons/Reset.png" id="icon3" class="icon icon3" onclick="reset()"/>
-        <img src="icons/Pause.png" id="icon41" class="icon icon4" onclick="pause1()"/>
-        <img src="icons/Play.png" id="icon42" class="icon icon4" onclick="play1()"/>
-        <img src="icons/Down.png" id="icon51" class="icon icon5" onclick="navBarOpenVertical()"/>
-        <img src="icons/Up.png" id="icon52" class="icon icon5" onclick="navBarCloseVertical()"/>
+        <input type="file" accept="image/*" onchange="previewFile()" id="upload">
 
-        <div id="checkboxes1">
-            <input type="checkbox" id="Gravity" name="Gravity" value="true" onchange="Gravity()"> Gravity<br>
-            <input type="checkbox" id="Collision" name="Collision" value="true" checked onchange="Collision()"> Collision
-        </div>
-        <div id="checkboxes2">
-            <input type="checkbox" id="Friction" name="Friction" value="true" checked onchange="Friction()"> Friction<br>
-            <input type="checkbox" id="Art" name="Art" value="true" onchange="Art()"> Art
+        <div id="navBar">
+
+            <img src="icons/HamburgerMenu.png" class="icon icon1" onclick="navBarOpenHorizontal()"/>
+
+            <div>
+                <input type="range" min="10" max="100" value="30" class="slider" id="myRange">
+            </div>
+
+            <img src="icons/Circle.png" id="icon21" class="icon icon2" onclick="line()"/>
+            <img src="icons/Line.png" id="icon22" class="icon icon2" onclick="circle()"/>
+            <img src="icons/Reset.png" id="icon3" class="icon icon3" onclick="reset()"/>
+            <img src="icons/Pause.png" id="icon41" class="icon icon4" onclick="paused()"/>
+            <img src="icons/Play.png" id="icon42" class="icon icon4" onclick="play()"/>
+            <img src="icons/Down.png" id="icon51" class="icon icon5" onclick="navBarOpenVertical()"/>
+            <img src="icons/Up.png" id="icon52" class="icon icon5" onclick="navBarCloseVertical()"/>
+
+            <div id="checkboxes1">
+                <input type="checkbox" id="Gravity" name="Gravity" value="true" onchange="Gravity()"> Gravity<br>
+                <input type="checkbox" id="Collision" name="Collision" value="true" checked onchange="Collision()"> Collision
+            </div>
+            <div id="checkboxes2">
+                <input type="checkbox" id="Friction" name="Friction" value="true" checked onchange="Friction()"> Friction<br>
+                <input type="checkbox" id="Trail" name="Trail" value="true" onchange="Trail()"> Trail
+            </div>
         </div>
     </div>
 
     <canvas id="canvas"></canvas>
-    <script src="constructors.js"></script>
-    <script src="script.js"></script>
 </body>
+    <script src="script.js"></script>
 </html>
