@@ -1,62 +1,75 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=yes, minimal-ui">
-    <meta name="mobile-web-app-capable" content="yes">
-    <title>Balls</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, minimal-ui">
+    <title>Ballsim</title>
     <link rel="stylesheet" type="text/css" href="style.css">
 </head>
 <body>
-    <div id="overlay">
-        <div id="images">
+    <div id="settings">
+        <label class="container" for="gravityCheckbox"><b>G</b>ravity:<div class="input"><input type="number" value="100" id="gravityScale" onblur="percentage('gravityScale')"><div class="inputTxt">%</div></div>
+            <input type="checkbox" id="gravityCheckbox" onchange="toggle('gravity')"/>
+            <span class="checkmark"></span>
+        </label>
+        <br>
+        <label class="container" for="frictionCheckbox"><b>F</b>riction:<div class="input"><input type="number" value="100" id="frictionScale" onblur="percentage('frictionScale')"><div class="inputTxt">%</div></div>
+            <input type="checkbox" id="frictionCheckbox" onchange="toggle('friction')" checked/>
+            <span class="checkmark"></span>
+        </label>
+        <br>
+        <label class="container">Elasticity:<div class="input"><input type="number" value="100" id="elasticity" onblur="percentage('elasticity')"><div class="inputTxt">%</div></div>
+            <input type="checkbox"/>
+        </label>
+        <br><br>
+        <label class="container" for="trailCheckbox"><b>T</b>rail
+            <input type="checkbox" id="trailCheckbox" onchange="toggle('trail')"/>
+            <span class="checkmark"></span>
+        </label>
+        <br>
+        <label class="container" for="pausedCheckbox"><b>P</b>aused
+            <input type="checkbox" id="pausedCheckbox" onchange="toggle('paused')"/>
+            <span class="checkmark"></span>
+        </label>
+        <br><br>
+        <b>C</b>ollision with:<br>
+        <label class="container" for="ballCollisionCheckbox">Balls
+            <input type="checkbox" id="ballCollisionCheckbox" onchange="toggle('ballCollision')" checked/>
+            <span class="checkmark"></span>
+        </label>
+        <label class="container checkboxRight" for="wallCollisionCheckbox">Walls
+            <input type="checkbox" id="wallCollisionCheckbox" onchange="toggle('wallCollision')" checked/>
+            <span class="checkmark"></span>
+        </label>
+        <br>
+        <label class="container" for="edgeCollisionCheckbox">Edges
+            <input type="checkbox" id="edgeCollisionCheckbox" onchange="toggle('edgeCollision')" checked/>
+            <span class="checkmark"></span>
+        </label>
+        <label class="container checkboxRight" for="wrapEdgesCheckbox">Wrap
+            <input type="checkbox" id="wrapEdgesCheckbox" onchange="toggle('wrapEdges')"/>
+            <span class="checkmark"></span>
+        </label>
 
-        </div>
-        <div id="info">
-            <img src="icons/Info.png" id="icon6" class="icon icon6" onclick="info()"/>        
-            <font id="infoTxt">
-                Leftclick and drag to spawn balls<br>
-                Rightclick and drag to draw walls<br>
-                G to toggle Gravity: <b><a id="gravity">Off</a></b><br>
-                F to toggle Friction: <b><a id="friction">On</a></b><br>
-                C to toggle Collision: <b><a id="collision">On</a></b><br>
-                T to toggle Trail: <b><a id="trail">Off</a></b><br>
-                P to Pause<br>
-                R to Reset<br>
-                N to spawn a New random ball<br>
-                H to Hide the overlay<br>
-            </font>
-        </div>
+        <br><br>
 
-        <input type="file" accept="image/*" onchange="previewFile()" id="upload">
-
-        <div id="navBar">
-
-            <img src="icons/HamburgerMenu.png" class="icon icon1" onclick="navBarOpenHorizontal()"/>
-
-            <div>
-                <input type="range" min="10" max="100" value="30" class="slider" id="myRange">
-            </div>
-
-            <img src="icons/Circle.png" id="icon21" class="icon icon2" onclick="line()"/>
-            <img src="icons/Line.png" id="icon22" class="icon icon2" onclick="circle()"/>
-            <img src="icons/Reset.png" id="icon3" class="icon icon3" onclick="reset()"/>
-            <img src="icons/Pause.png" id="icon41" class="icon icon4" onclick="paused()"/>
-            <img src="icons/Play.png" id="icon42" class="icon icon4" onclick="play()"/>
-            <img src="icons/Down.png" id="icon51" class="icon icon5" onclick="navBarOpenVertical()"/>
-            <img src="icons/Up.png" id="icon52" class="icon icon5" onclick="navBarCloseVertical()"/>
-
-            <div id="checkboxes1">
-                <input type="checkbox" id="Gravity" name="Gravity" value="true" onchange="Gravity()"> Gravity<br>
-                <input type="checkbox" id="Collision" name="Collision" value="true" checked onchange="Collision()"> Collision
-            </div>
-            <div id="checkboxes2">
-                <input type="checkbox" id="Friction" name="Friction" value="true" checked onchange="Friction()"> Friction<br>
-                <input type="checkbox" id="Trail" name="Trail" value="true" onchange="Trail()"> Trail
-            </div>
-        </div>
-    </div>
+        Bold letters indicate toggles<br><br>
+        Leftclick: spawn a ball<br>
+        Shift: Pan the screen<br><br>
+        Rightclick: draw a wall<br>
+        Shift: Draw wall freely<br><br>
+        Scroll: adjust ball radius<br>
+        Shift: Zoom the canvas<br><br>
+        Scrollclick: reset ball radius<br>
+        Shift: Adjust edge border<br><br>
+        Arrow keys while paused:<br>
+        Next/Previous frame<br><br>
+        R: Reset the canvas<br><br>
+    <div>
 
     <canvas id="canvas"></canvas>
+
+    <script src="js/input.js"></script>
+    <script src="js/transform.js"></script>
+    <script src="js/script.js"></script>
 </body>
-    <script src="script.js"></script>
 </html>
