@@ -7,7 +7,7 @@ canvas.onmousedown = function(e){
     if(held.shiftKey == true){
 		if(e.button == 0){
 			held.left = {x:mousePos.x, y:mousePos.y};
-			dragging = true;
+			dragging = "canvas";
 		}
 		if(e.button == 1){
 			canvasPos = ctx.transformedPoint(0,0);
@@ -21,6 +21,16 @@ canvas.onmousedown = function(e){
     else{
 		if(e.button == 0){
 			held.left = {x:mousePos.x, y:mousePos.y};
+
+			for (var ball in balls) {
+	            if (Math.hypot(balls[ball].x - held.left.x, balls[ball].y - held.left.y) < balls[ball].radius){
+	                balls[ball].x = mousePos.x;
+	                balls[ball].y = mousePos.y;
+	                balls[ball].dx = 0;
+	                balls[ball].dy = 0;
+	                dragging = ball;
+	            }
+	        }
 		}
 		if(e.button == 1){
 			standardRadiusBalls = 30;
@@ -52,17 +62,20 @@ canvas.onmouseup = function(e){
     }
     else{
 		if(e.button == 0){
-			balls[balls.length] = {
-                radius:standardRadiusBalls,
-                mass:standardRadiusBalls**3,
-                dx:-(held.left.x-mousePos.x)/30,
-                dy:-(held.left.y-mousePos.y)/30,
-                x:held.left.x,
-                y:held.left.y,
-                color:"rgb(" + Math.floor(Math.random()*250) + ", " + Math.floor(Math.random()*250) + ", " + Math.floor(Math.random()*250) + ")"
-            };
+			if(!dragging){
+				balls[balls.length] = {
+	                radius:standardRadiusBalls,
+	                mass:standardRadiusBalls**3,
+	                dx:-(held.left.x-mousePos.x)/30,
+	                dy:-(held.left.y-mousePos.y)/30,
+	                x:held.left.x,
+	                y:held.left.y,
+	                color:"rgb(" + Math.floor(Math.random()*250) + ", " + Math.floor(Math.random()*250) + ", " + Math.floor(Math.random()*250) + ")"
+	            };
+	        }
 
 			held.left = ".";
+			dragging = false;
 		}
 		if(e.button == 2){
 			walls[walls.length] = {
@@ -80,10 +93,14 @@ canvas.onmouseup = function(e){
 canvas.onmousemove = function(e){
 	mousePos = ctx.transformedPoint(e.clientX - document.getElementById("canvas").getBoundingClientRect().left, e.clientY - document.getElementById("canvas").getBoundingClientRect().top);
 
-	if(dragging){
+	if(dragging == "canvas"){
 	    ctx.translate(mousePos.x-held.left.x,mousePos.y-held.left.y);
 	    drawObjects();
 	}
+	/*if(!isNaN(Number(dragging))){
+        balls[dragging].x = mousePos.x;
+        balls[dragging].y = mousePos.y;
+    }*/
 	if(held.shiftKey == true){
 		if(Math.hypot(held.right.x - mousePos.x, held.right.y - mousePos.y) >= 5){
 			walls[walls.length] = {
@@ -129,12 +146,23 @@ function checkKeyDown(e) {
     }
     if (e.keyCode == '37'){ //left arrow
         if(paused){
-            //previousFrame();
+            balls = JSON.parse(JSON.stringify(frames[currentFrame-1].balls));
+            walls = JSON.parse(JSON.stringify(frames[currentFrame-1].walls));
+            currentFrame--;
+            drawObjects();
         }
     }
     if (e.keyCode == '39'){ //right arrow
         if(paused){
-            //nextFrame();
+            if(currentFrame > frames.length - 2){
+            	requestAnimationFrame(frame);
+            }
+            else{
+            	balls = JSON.parse(JSON.stringify(frames[currentFrame+1].balls));
+            	walls = JSON.parse(JSON.stringify(frames[currentFrame+1].walls));
+            	currentFrame++;
+            	drawObjects();
+            }
         }
     }
 

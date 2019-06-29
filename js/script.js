@@ -9,16 +9,17 @@ var balls = [];
 var walls = [];
 var frames = [];
 var currentFrame = 0;
+var contacts;
 
 var friction = true;
 var gravity = false;
 var ballCollision = true;
 var wallCollision = true;
 var edgeCollision = true;
-var wrapEdges = false;
+var wrapEdges = true;
 var paused = false;
 var trail = false;
-var standardRadiusBalls = 30;
+var standardRadiusBalls = 25;
 
 var basegravityScale = 0.5; var gravityScale = basegravityScale;
 var basefrictionScale = 0.005; var frictionScale = basefrictionScale;
@@ -41,8 +42,7 @@ function frame(){
 	if(gravity){applyGravity();}
 	if(friction){applyFriction();}
 	moveBalls();
-	detectCollision();
-	resolveCollision();
+	collision();
 	drawObjects();
 
 	if(!paused){requestAnimationFrame(frame);}
@@ -68,101 +68,175 @@ function moveBalls(){
 	}
 }
 
-function detectCollision(){
-	for(var ball in balls){
-        if(balls[ball].x < balls[ball].radius + canvasPos.x){balls[ball].x = balls[ball].radius + canvasPos.x; balls[ball].dx *= -elasticity;}
-        if(balls[ball].x > canvasWidth - balls[ball].radius + canvasPos.x){balls[ball].x = canvasWidth - balls[ball].radius + canvasPos.x; balls[ball].dx *= -elasticity;}
-        if(balls[ball].y < balls[ball].radius + canvasPos.y){balls[ball].y = balls[ball].radius + canvasPos.y; balls[ball].dy *= -elasticity;}
-        if(balls[ball].y > canvasHeight - balls[ball].radius + canvasPos.y){balls[ball].y = canvasHeight - balls[ball].radius + canvasPos.y; balls[ball].dy *= -elasticity;}
-    }
-}
+function collision(){
+	if(ballCollision){
+		for(var ball1 in balls){
+			for (var ball2 in balls) {
+				if(ball1 < ball2){
+					if(Math.hypot(balls[ball2].x - balls[ball1].x, balls[ball2].y - balls[ball1].y) <= balls[ball1].radius + balls[ball2].radius){
+						var theta = Math.atan2(balls[ball2].y - balls[ball1].y, balls[ball2].x - balls[ball1].x);
+						var overlap = balls[ball1].radius + balls[ball2].radius - Math.hypot(balls[ball1].x - balls[ball2].x, balls[ball1].y - balls[ball2].y);
+						balls[ball1].x -= overlap * Math.cos(theta)/((balls[ball1].mass/balls[ball2].mass)+1);
+						balls[ball1].y -= overlap * Math.sin(theta)/((balls[ball1].mass/balls[ball2].mass)+1);
+						balls[ball2].x += overlap * Math.cos(theta)/((balls[ball2].mass/balls[ball1].mass)+1);
+						balls[ball2].y += overlap * Math.sin(theta)/((balls[ball2].mass/balls[ball1].mass)+1);
 
-function resolveCollision(){
+						var phi = Math.atan2(balls[ball2].y - balls[ball1].y, balls[ball2].x - balls[ball1].x);
+						var theta1 = Math.atan2(balls[ball1].dy, balls[ball1].dx);
+						var theta2 = Math.atan2(balls[ball2].dy, balls[ball2].dx);
+						var m1 = balls[ball1].mass;
+						var m2 = balls[ball2].mass;
+						var v1 = Math.sqrt(balls[ball1].dx**2 + balls[ball1].dy**2);
+						var v2 = Math.sqrt(balls[ball2].dx**2 + balls[ball2].dy**2);
 
-}
-
-function drawObjects(){
-	var p1 = ctx.transformedPoint(0,0);
-	var p2 = ctx.transformedPoint(canvas.width,canvas.height);
-
-	if(!trail){
-	    ctx.clearRect(p1.x,p1.y,p2.x-p1.x,p2.y-p1.y);
+						balls[ball1].dx = (elasticity*m2*(v2*Math.cos(theta2-phi)-v1*Math.cos(theta1-phi)) + m1*v1*Math.cos(theta1-phi) + m2*v2*Math.cos(theta2-phi)) / (m1+m2)*Math.cos(phi) + v1*Math.sin(theta1-phi)*Math.cos(phi+Math.PI/2);
+						balls[ball1].dy = (elasticity*m2*(v2*Math.cos(theta2-phi)-v1*Math.cos(theta1-phi)) + m1*v1*Math.cos(theta1-phi) + m2*v2*Math.cos(theta2-phi)) / (m1+m2)*Math.sin(phi) + v1*Math.sin(theta1-phi)*Math.sin(phi+Math.PI/2);
+						balls[ball2].dx = (elasticity*m1*(v1*Math.cos(theta1-phi)-v2*Math.cos(theta2-phi)) + m2*v2*Math.cos(theta2-phi) + m1*v1*Math.cos(theta1-phi)) / (m1+m2)*Math.cos(phi) + v2*Math.sin(theta2-phi)*Math.cos(phi+Math.PI/2);
+						balls[ball2].dy = (elasticity*m1*(v1*Math.cos(theta1-phi)-v2*Math.cos(theta2-phi)) + m2*v2*Math.cos(theta2-phi) + m1*v1*Math.cos(theta1-phi)) / (m1+m2)*Math.sin(phi) + v2*Math.sin(theta2-phi)*Math.sin(phi+Math.PI/2);
+					}
+				}
+			}
+		}
 	}
 
-	p1 = canvasPos;
-	p2 = {x:p1.x+canvasWidth, y:p1.y+canvasHeight};
+	if(wallCollision){
+		for(var ball1 in balls){
+			for (var wall1 in walls){
+				var ball = balls[ball1];
+				var wall = walls[wall1];
+				
+				var dx=(ball.x+ball.dx)-wall.x1;
+				var dy=(ball.y+ball.dy)-wall.y1;
+
+				var dxx=wall.x2-wall.x1;
+				var dyy=wall.y2-wall.y1;
+
+				var t=(dx*dxx+dy*dyy)/(dxx*dxx+dyy*dyy);
+
+				var x=wall.x1+dxx*t;
+				var y=wall.y1+dyy*t;
+
+				if(t<0){x=wall.x1;y=wall.y1;}
+				if(t>1){x=wall.x2;y=wall.y2;}
+
+				if((Math.hypot((ball.x + ball.dx) - x, (ball.y + ball.dy) - y) < ball.radius)){
+					var theta = Math.atan2(ball.dy, ball.dx);
+					var phi = Math.atan2(y - (ball.y + ball.dy), x - (ball.x + ball.dx));
+					var v = Math.sqrt(ball.dx**2 + ball.dy**2);
+
+					balls[ball1].dx = (elasticity*(-v*Math.cos(theta-phi))) * Math.cos(phi) + v*Math.sin(theta-phi)*Math.cos(phi+Math.PI/2);
+					balls[ball1].dy = (elasticity*(-v*Math.cos(theta-phi))) * Math.sin(phi) + v*Math.sin(theta-phi)*Math.sin(phi+Math.PI/2);
+				}
+
+				if(Math.hypot(ball.x - x, ball.y - y) < ball.radius){
+					var theta = Math.atan2((ball.y - y), (ball.x - x));
+					var overlap = ball.radius - Math.hypot(ball.x - x, ball.y - y);
+					balls[ball1].x += overlap * Math.cos(theta);
+					balls[ball1].y += overlap * Math.sin(theta);
+				}
+			}
+		}
+	}
+
+	if(edgeCollision){
+		for(var ball in balls){
+			if(balls[ball].x < balls[ball].radius + canvasPos.x){balls[ball].x = balls[ball].radius + canvasPos.x; balls[ball].dx *= -elasticity;}
+			if(balls[ball].x > canvasWidth - balls[ball].radius + canvasPos.x){balls[ball].x = canvasWidth - balls[ball].radius + canvasPos.x; balls[ball].dx *= -elasticity;}
+			if(balls[ball].y < balls[ball].radius + canvasPos.y){balls[ball].y = balls[ball].radius + canvasPos.y; balls[ball].dy *= -elasticity;}
+			if(balls[ball].y > canvasHeight - balls[ball].radius + canvasPos.y){balls[ball].y = canvasHeight - balls[ball].radius + canvasPos.y; balls[ball].dy *= -elasticity;}
+		}
+	}
+	else if(wrapEdges){
+		for(var ball in balls){
+			if(balls[ball].x < -balls[ball].radius + canvasPos.x){balls[ball].x = canvasWidth + balls[ball].radius + canvasPos.x;}
+			if(balls[ball].x > canvasWidth + balls[ball].radius + canvasPos.x){balls[ball].x = -balls[ball].radius + canvasPos.x;}
+			if(balls[ball].y < -balls[ball].radius + canvasPos.y){balls[ball].y = canvasHeight + balls[ball].radius + canvasPos.y;}
+			if(balls[ball].y > canvasHeight + balls[ball].radius + canvasPos.y){balls[ball].y = -balls[ball].radius + canvasPos.y;}
+		}
+	}
+	else{
+		for(var ball in balls){
+			if(balls[ball].x < -balls[ball].radius + canvasPos.x){balls.splice(ball,1); continue;}
+			if(balls[ball].x > canvasWidth + balls[ball].radius + canvasPos.x){balls.splice(ball,1); continue;}
+			if(balls[ball].y < -balls[ball].radius + canvasPos.y){balls.splice(ball,1); continue;}
+			if(balls[ball].y > canvasHeight + balls[ball].radius + canvasPos.y){balls.splice(ball,1); continue;}
+		}
+	}
+}
+function drawObjects(){
+	var fullCanvasP1 = ctx.transformedPoint(0,0);
+	var fullCanvasP2 = ctx.transformedPoint(canvas.width,canvas.height);
+
+	if(!trail){
+		ctx.clearRect(fullCanvasP1.x,fullCanvasP1.y,fullCanvasP2.x-fullCanvasP1.x,fullCanvasP2.y-fullCanvasP1.y);
+	}
+
+	var canvasP1 = canvasPos;
+	var canvasP2 = {x:canvasP1.x+canvasWidth, y:canvasP1.y+canvasHeight};
 
 	for(var ball in balls){
 		ctx.globalAlpha = 0.5;
-        ctx.beginPath();
-        ctx.arc(balls[ball].x, balls[ball].y, balls[ball].radius, 0, 2*Math.PI);
-        ctx.closePath();
-        ctx.fillStyle = balls[ball].color;
-        ctx.fill();
-        ctx.globalAlpha = 1;
-        ctx.lineWidth = 1;
-        ctx.strokeStyle = balls[ball].color;
-        ctx.stroke();	
+		ctx.beginPath();
+		ctx.arc(balls[ball].x, balls[ball].y, balls[ball].radius, 0, 2*Math.PI);
+		ctx.closePath();
+		ctx.fillStyle = balls[ball].color;
+		ctx.fill();
+		ctx.globalAlpha = 1;
+		ctx.lineWidth = 1;
+		ctx.strokeStyle = balls[ball].color;
+		ctx.stroke();
 	}
 
 	ctx.strokeStyle = "black";
 	ctx.fillStyle = "black";
 
 	for (var wall in walls) { 
-        ctx.beginPath();
-        ctx.moveTo(walls[wall].x1,walls[wall].y1);
-        ctx.lineTo(walls[wall].x2,walls[wall].y2);
-        ctx.lineWidth = 5;
-        ctx.stroke();
-    }
-
-    ctx.lineWidth = canvasHeight/500;
-    ctx.beginPath();
-    ctx.moveTo(p1.x,p1.y);
-    ctx.lineTo(p1.x,p2.y);
-    ctx.stroke();
-    ctx.beginPath();
-    ctx.moveTo(p1.x,p1.y);
-    ctx.lineTo(p2.x,p1.y);
-    ctx.stroke();
-    ctx.beginPath();
-    ctx.moveTo(p1.x,p2.y);
-    ctx.lineTo(p2.x,p2.y);
-    ctx.stroke();
-    ctx.beginPath();
-    ctx.moveTo(p2.x,p2.y);
-    ctx.lineTo(p2.x,p1.y);
-    ctx.stroke();
-
-    if(!trail){
-	    if(!dragging){
-	        ctx.beginPath();
-	        ctx.moveTo(held.left.x,held.left.y);
-	        ctx.lineTo(mousePos.x,mousePos.y);
-	        ctx.lineWidth = 3;
-	        ctx.stroke();
-	        var angle = Math.atan2(mousePos.y-held.left.y,mousePos.x-held.left.x);
-	        ctx.beginPath();
-	        ctx.moveTo(mousePos.x, mousePos.y);
-	        ctx.lineTo(mousePos.x-1*Math.cos(angle-Math.PI/7),mousePos.y-1*Math.sin(angle-Math.PI/7));
-	        ctx.lineTo(mousePos.x-1*Math.cos(angle+Math.PI/7),mousePos.y-1*Math.sin(angle+Math.PI/7));
-	        ctx.lineTo(mousePos.x, mousePos.y);
-	        ctx.lineTo(mousePos.x-1*Math.cos(angle-Math.PI/7),mousePos.y-1*Math.sin(angle-Math.PI/7));
-	        ctx.lineWidth = 11;
-	        ctx.stroke();
-	        ctx.fill();
-	    }
-	    if(scrolling>0){
-	        ctx.beginPath();
-		    ctx.arc(mousePos.x,mousePos.y,standardRadiusBalls,0,Math.PI*2);
-		    ctx.closePath();
-	    }
-	    ctx.lineWidth = 1;
-	    ctx.stroke(); 
-	    ctx.beginPath();
-	    ctx.moveTo(held.right.x,held.right.y);
-	    ctx.lineTo(mousePos.x,mousePos.y);
-	    ctx.lineWidth = 5;
-	    ctx.stroke();
+		ctx.beginPath();
+		ctx.moveTo(walls[wall].x1,walls[wall].y1);
+		ctx.lineTo(walls[wall].x2,walls[wall].y2);
+		ctx.lineWidth = 5;
+		ctx.stroke();
 	}
+
+	if(!trail){
+		if(!dragging){
+			ctx.beginPath();
+			ctx.moveTo(held.left.x,held.left.y);
+			ctx.lineTo(mousePos.x,mousePos.y);
+			ctx.lineWidth = 3;
+			ctx.stroke();
+			var angle = Math.atan2(mousePos.y-held.left.y,mousePos.x-held.left.x);
+			ctx.beginPath();
+			ctx.moveTo(mousePos.x, mousePos.y);
+			ctx.lineTo(mousePos.x-1*Math.cos(angle-Math.PI/7),mousePos.y-1*Math.sin(angle-Math.PI/7));
+			ctx.lineTo(mousePos.x-1*Math.cos(angle+Math.PI/7),mousePos.y-1*Math.sin(angle+Math.PI/7));
+			ctx.lineTo(mousePos.x, mousePos.y);
+			ctx.lineTo(mousePos.x-1*Math.cos(angle-Math.PI/7),mousePos.y-1*Math.sin(angle-Math.PI/7));
+			ctx.lineWidth = 11;
+			ctx.stroke();
+			ctx.fill();
+		}
+		if(scrolling>0){
+			ctx.beginPath();
+			ctx.arc(mousePos.x,mousePos.y,standardRadiusBalls,0,Math.PI*2);
+			ctx.closePath();
+			ctx.lineWidth = 1;
+			ctx.stroke();
+		}
+		ctx.beginPath();
+		ctx.moveTo(held.right.x,held.right.y);
+		ctx.lineTo(mousePos.x,mousePos.y);
+		ctx.lineWidth = 5;
+		ctx.stroke();
+	}
+
+	ctx.clearRect(fullCanvasP1.x,fullCanvasP1.y,canvasP1.x-fullCanvasP1.x,fullCanvasP2.y-fullCanvasP1.y);
+	ctx.clearRect(fullCanvasP1.x,fullCanvasP1.y,fullCanvasP2.x-fullCanvasP1.x,canvasP1.y-fullCanvasP1.y);
+	ctx.clearRect(fullCanvasP2.x,fullCanvasP2.y,-(fullCanvasP2.x-canvasP2.x),-(fullCanvasP2.y-fullCanvasP1.y));
+	ctx.clearRect(fullCanvasP2.x,fullCanvasP2.y,-(fullCanvasP2.x-fullCanvasP1.x),-(fullCanvasP2.y-canvasP2.y));
+
+	ctx.beginPath();
+	ctx.rect(canvasP1.x,canvasP1.y,canvasP2.x-canvasP1.x,canvasP2.y-canvasP1.y);
+	ctx.lineWidth = canvasHeight/500;
+	ctx.stroke();
 }
