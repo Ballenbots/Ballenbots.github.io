@@ -1,7 +1,8 @@
 var mousePos = {x:".", y:"."};
-var held = {"left":".", "right":".", "shiftKey":"."};
+var held = {left:".", right:".", shiftKey:".", deleteKey:"."};
 var scrolling = 0;
 var dragging = false;
+var deleting = false;
 
 canvas.onmousedown = function(e){
     if(held.shiftKey == true){
@@ -20,17 +21,36 @@ canvas.onmousedown = function(e){
     }
     else{
 		if(e.button == 0){
-			held.left = {x:mousePos.x, y:mousePos.y};
+			if(held.deleteKey == true){
+				deleting = true;
 
-			for (var ball in balls) {
-	            if (Math.hypot(balls[ball].x - held.left.x, balls[ball].y - held.left.y) < balls[ball].radius){
-	                balls[ball].x = mousePos.x;
-	                balls[ball].y = mousePos.y;
-	                balls[ball].dx = 0;
-	                balls[ball].dy = 0;
-	                dragging = ball;
-	            }
-	        }
+				for (var ball = balls.length-1; ball >= 0; ball--){
+		            if(Math.hypot(balls[ball].x - mousePos.x, balls[ball].y - mousePos.y) < balls[ball].radius){
+		                balls.splice(ball,1);
+		            }
+		        }
+
+		        for(var wall in walls){
+					var wallPos = ClosestPointOnWall(mousePos.x, mousePos.y, walls[wall]);
+					if(Math.hypot(mousePos.x - wallPos.x, mousePos.y - wallPos.y) < 2.5){
+						walls.splice(wall,1);
+					}
+				}
+			}
+			else{
+				held.left = {x:mousePos.x, y:mousePos.y};
+
+				for (var ball = balls.length-1; ball >= 0; ball--){
+		            if(Math.hypot(balls[ball].x - held.left.x, balls[ball].y - held.left.y) < balls[ball].radius){
+		                balls[ball].x = mousePos.x;
+		                balls[ball].y = mousePos.y;
+		                balls[ball].dx = 0;
+		                balls[ball].dy = 0;
+		                dragging = ball;
+		                ball = 0;
+		            }
+		        }
+			}
 		}
 		if(e.button == 1){
 			standardRadiusBalls = 30;
@@ -62,7 +82,7 @@ canvas.onmouseup = function(e){
     }
     else{
 		if(e.button == 0){
-			if(!dragging){
+			if(dragging === false && !deleting){
 				balls[balls.length] = {
 	                radius:standardRadiusBalls,
 	                mass:standardRadiusBalls**3,
@@ -76,6 +96,7 @@ canvas.onmouseup = function(e){
 
 			held.left = ".";
 			dragging = false;
+			deleting = false;
 		}
 		if(e.button == 2){
 			walls[walls.length] = {
@@ -97,10 +118,10 @@ canvas.onmousemove = function(e){
 	    ctx.translate(mousePos.x-held.left.x,mousePos.y-held.left.y);
 	    drawObjects();
 	}
-	/*if(!isNaN(Number(dragging))){
+	if(isNumber(dragging)){
         balls[dragging].x = mousePos.x;
         balls[dragging].y = mousePos.y;
-    }*/
+    }
 	if(held.shiftKey == true){
 		if(Math.hypot(held.right.x - mousePos.x, held.right.y - mousePos.y) >= 5){
 			walls[walls.length] = {
@@ -111,6 +132,22 @@ canvas.onmousemove = function(e){
 		    };
 
 		    held.right = mousePos;
+		}
+	}
+	if(deleting){
+		for (var ball = balls.length-1; ball >= 0; ball--){
+			if(Math.hypot(balls[ball].x - mousePos.x, balls[ball].y - mousePos.y) < balls[ball].radius){
+				balls.splice(ball,1);
+			}
+		}
+
+		for(var wall in walls){
+			for(var wall in walls){
+				var wallPos = ClosestPointOnWall(mousePos.x, mousePos.y, walls[wall]);
+				if(Math.hypot(mousePos.x - wallPos.x, mousePos.y - wallPos.y) < 2.5){
+					walls.splice(wall,1);
+				}
+			}
 		}
 	}
 }
@@ -144,7 +181,7 @@ function checkKeyDown(e) {
     if (e.keyCode == "16"){ //shift
 		held.shiftKey = true;
     }
-    if (e.keyCode == '37'){ //left arrow
+    if (e.keyCode == "37"){ //left arrow
         if(paused){
             balls = JSON.parse(JSON.stringify(frames[currentFrame-1].balls));
             walls = JSON.parse(JSON.stringify(frames[currentFrame-1].walls));
@@ -152,7 +189,7 @@ function checkKeyDown(e) {
             drawObjects();
         }
     }
-    if (e.keyCode == '39'){ //right arrow
+    if (e.keyCode == "39"){ //right arrow
         if(paused){
             if(currentFrame > frames.length - 2){
             	requestAnimationFrame(frame);
@@ -165,8 +202,11 @@ function checkKeyDown(e) {
             }
         }
     }
+    if (e.keyCode == "46"){ //delete
+    	held.deleteKey = true;
+    }
 
-    if (e.keyCode == '82'){ //r
+    if (e.keyCode == "82"){ //r
     	var p1 = ctx.transformedPoint(0,0);
 		var p2 = ctx.transformedPoint(canvas.width,canvas.height);
 	    ctx.clearRect(p1.x,p1.y,p2.x-p1.x,p2.y-p1.y);
@@ -177,20 +217,20 @@ function checkKeyDown(e) {
         balls = [];
         walls = [];
     }
-    if (e.keyCode == '67'){ //c
+    if (e.keyCode == "67"){ //c
         toggle("ballCollision");
         toggle("wallCollision");
     }
-    if (e.keyCode == '70'){ //f
+    if (e.keyCode == "70"){ //f
         toggle("friction");
     }
-    if (e.keyCode == '71'){ //g
+    if (e.keyCode == "71"){ //g
         toggle("gravity");
     }
-    if (e.keyCode == '80'){ //p
+    if (e.keyCode == "80"){ //p
         toggle("paused");
     }
-    if (e.keyCode == '84'){ //t
+    if (e.keyCode == "84"){ //t
         toggle("trail");
     }
 }
@@ -205,6 +245,10 @@ function checkKeyUp(e) {
         held.shiftKey = ".";
         dragging = false;
     }
+    if (e.keyCode == "46"){ //delete
+        held.deleteKey = ".";
+        deleting = false;
+    }
 }
 
 function toggle(variable){
@@ -216,4 +260,24 @@ function toggle(variable){
 
 function percentage(variable){
 	window[variable] = window["base" + variable] * Number(document.getElementById(variable).value)/100;
+}
+
+function isNumber(n) {return /^-?[\d.]+(?:e-?\d+)?$/.test(n);}
+
+function ClosestPointOnWall(x,y,wall){
+	var dx=x-wall.x1;
+	var dy=y-wall.y1;
+
+	var dxx=wall.x2-wall.x1;
+	var dyy=wall.y2-wall.y1;
+
+	var t=(dx*dxx+dy*dyy)/(dxx*dxx+dyy*dyy);
+
+	var x3=wall.x1+dxx*t;
+	var y3=wall.y1+dyy*t;
+
+	if(t<0){x3=wall.x1;y3=wall.y1;}
+	if(t>1){x3=wall.x2;y3=wall.y2;}
+
+	return {x:x3, y:y3};
 }

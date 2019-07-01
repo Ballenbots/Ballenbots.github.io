@@ -100,39 +100,23 @@ function collision(){
 	}
 
 	if(wallCollision){
-		for(var ball1 in balls){
-			for (var wall1 in walls){
-				var ball = balls[ball1];
-				var wall = walls[wall1];
-				
-				var dx=(ball.x+ball.dx)-wall.x1;
-				var dy=(ball.y+ball.dy)-wall.y1;
+		for(var ball in balls){
+			for (var wall in walls){
+				var wallPos = ClosestPointOnWall(balls[ball].x, balls[ball].y, walls[wall]);
+				if(Math.hypot(balls[ball].x - wallPos.x, balls[ball].y - wallPos.y) < balls[ball].radius){
+					var theta = Math.atan2(balls[ball].dy, balls[ball].dx);
+					var phi = Math.atan2(wallPos.y - balls[ball].y, wallPos.x - balls[ball].x);
+					var v = Math.sqrt(balls[ball].dx**2 + balls[ball].dy**2);
 
-				var dxx=wall.x2-wall.x1;
-				var dyy=wall.y2-wall.y1;
-
-				var t=(dx*dxx+dy*dyy)/(dxx*dxx+dyy*dyy);
-
-				var x=wall.x1+dxx*t;
-				var y=wall.y1+dyy*t;
-
-				if(t<0){x=wall.x1;y=wall.y1;}
-				if(t>1){x=wall.x2;y=wall.y2;}
-
-				if((Math.hypot((ball.x + ball.dx) - x, (ball.y + ball.dy) - y) < ball.radius)){
-					var theta = Math.atan2(ball.dy, ball.dx);
-					var phi = Math.atan2(y - (ball.y + ball.dy), x - (ball.x + ball.dx));
-					var v = Math.sqrt(ball.dx**2 + ball.dy**2);
-
-					balls[ball1].dx = (elasticity*(-v*Math.cos(theta-phi))) * Math.cos(phi) + v*Math.sin(theta-phi)*Math.cos(phi+Math.PI/2);
-					balls[ball1].dy = (elasticity*(-v*Math.cos(theta-phi))) * Math.sin(phi) + v*Math.sin(theta-phi)*Math.sin(phi+Math.PI/2);
+					balls[ball].dx = (elasticity*(-v*Math.cos(theta-phi))) * Math.cos(phi) + v*Math.sin(theta-phi)*Math.cos(phi+Math.PI/2);
+					balls[ball].dy = (elasticity*(-v*Math.cos(theta-phi))) * Math.sin(phi) + v*Math.sin(theta-phi)*Math.sin(phi+Math.PI/2);
 				}
 
-				if(Math.hypot(ball.x - x, ball.y - y) < ball.radius){
-					var theta = Math.atan2((ball.y - y), (ball.x - x));
-					var overlap = ball.radius - Math.hypot(ball.x - x, ball.y - y);
-					balls[ball1].x += overlap * Math.cos(theta);
-					balls[ball1].y += overlap * Math.sin(theta);
+				if(Math.hypot(balls[ball].x - wallPos.x, balls[ball].y - wallPos.y) < balls[ball].radius){
+					var theta = Math.atan2((balls[ball].y - wallPos.y), (balls[ball].x - wallPos.x));
+					var overlap = balls[ball].radius - Math.hypot(balls[ball].x - wallPos.x, balls[ball].y - wallPos.y);
+					balls[ball].x += overlap * Math.cos(theta);
+					balls[ball].y += overlap * Math.sin(theta);
 				}
 			}
 		}
@@ -163,6 +147,7 @@ function collision(){
 		}
 	}
 }
+
 function drawObjects(){
 	var fullCanvasP1 = ctx.transformedPoint(0,0);
 	var fullCanvasP2 = ctx.transformedPoint(canvas.width,canvas.height);
@@ -199,7 +184,7 @@ function drawObjects(){
 	}
 
 	if(!trail){
-		if(!dragging){
+		if(dragging === false){
 			ctx.beginPath();
 			ctx.moveTo(held.left.x,held.left.y);
 			ctx.lineTo(mousePos.x,mousePos.y);
