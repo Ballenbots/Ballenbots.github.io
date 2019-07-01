@@ -46,7 +46,7 @@ canvas.onmousedown = function(e){
 		                balls[ball].y = mousePos.y;
 		                balls[ball].dx = 0;
 		                balls[ball].dy = 0;
-		                dragging = ball;
+		                dragging = Number(ball);
 		                ball = 0;
 		            }
 		        }

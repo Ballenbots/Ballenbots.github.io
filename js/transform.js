@@ -13,7 +13,7 @@ function trackTransforms(ctx){
     var restore = ctx.restore;
     ctx.restore = function(){
         xform = savedTransforms.pop();
-       return restore.call(ctx);
+        return restore.call(ctx);
     };
     //
 

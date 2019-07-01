@@ -50,7 +50,9 @@ function frame(){
 
 function applyGravity(){
 	for(var ball in balls){
-		balls[ball].dy += gravityScale;
+		if(Number(ball) !== dragging){
+			balls[ball].dy += gravityScale;
+		}
 	}
 }
 
@@ -63,8 +65,10 @@ function applyFriction(){
 
 function moveBalls(){
 	for(var ball in balls){
-		balls[ball].x += balls[ball].dx;
-		balls[ball].y += balls[ball].dy;
+		if(Number(ball) !== dragging){
+			balls[ball].x += balls[ball].dx;
+			balls[ball].y += balls[ball].dy;
+		}
 	}
 }
 
@@ -72,7 +76,7 @@ function collision(){
 	if(ballCollision){
 		for(var ball1 in balls){
 			for (var ball2 in balls) {
-				if(ball1 < ball2){
+				if(ball1 < ball2 && (Number(ball1) !== dragging && Number(ball2) !== dragging)){
 					if(Math.hypot(balls[ball2].x - balls[ball1].x, balls[ball2].y - balls[ball1].y) <= balls[ball1].radius + balls[ball2].radius){
 						var theta = Math.atan2(balls[ball2].y - balls[ball1].y, balls[ball2].x - balls[ball1].x);
 						var overlap = balls[ball1].radius + balls[ball2].radius - Math.hypot(balls[ball1].x - balls[ball2].x, balls[ball1].y - balls[ball2].y);
@@ -102,48 +106,48 @@ function collision(){
 	if(wallCollision){
 		for(var ball in balls){
 			for (var wall in walls){
-				var wallPos = ClosestPointOnWall(balls[ball].x, balls[ball].y, walls[wall]);
-				if(Math.hypot(balls[ball].x - wallPos.x, balls[ball].y - wallPos.y) < balls[ball].radius){
-					var theta = Math.atan2(balls[ball].dy, balls[ball].dx);
-					var phi = Math.atan2(wallPos.y - balls[ball].y, wallPos.x - balls[ball].x);
-					var v = Math.sqrt(balls[ball].dx**2 + balls[ball].dy**2);
+				if(Number(ball) !== dragging){
+					var wallPos = ClosestPointOnWall(balls[ball].x, balls[ball].y, walls[wall]);
+					if(Math.hypot(balls[ball].x - wallPos.x, balls[ball].y - wallPos.y) < balls[ball].radius){
+						var theta = Math.atan2(balls[ball].dy, balls[ball].dx);
+						var phi = Math.atan2(wallPos.y - balls[ball].y, wallPos.x - balls[ball].x);
+						var v = Math.sqrt(balls[ball].dx**2 + balls[ball].dy**2);
 
-					balls[ball].dx = (elasticity*(-v*Math.cos(theta-phi))) * Math.cos(phi) + v*Math.sin(theta-phi)*Math.cos(phi+Math.PI/2);
-					balls[ball].dy = (elasticity*(-v*Math.cos(theta-phi))) * Math.sin(phi) + v*Math.sin(theta-phi)*Math.sin(phi+Math.PI/2);
-				}
+						balls[ball].dx = (elasticity*(-v*Math.cos(theta-phi))) * Math.cos(phi) + v*Math.sin(theta-phi)*Math.cos(phi+Math.PI/2);
+						balls[ball].dy = (elasticity*(-v*Math.cos(theta-phi))) * Math.sin(phi) + v*Math.sin(theta-phi)*Math.sin(phi+Math.PI/2);
+					}
 
-				if(Math.hypot(balls[ball].x - wallPos.x, balls[ball].y - wallPos.y) < balls[ball].radius){
-					var theta = Math.atan2((balls[ball].y - wallPos.y), (balls[ball].x - wallPos.x));
-					var overlap = balls[ball].radius - Math.hypot(balls[ball].x - wallPos.x, balls[ball].y - wallPos.y);
-					balls[ball].x += overlap * Math.cos(theta);
-					balls[ball].y += overlap * Math.sin(theta);
+					if(Math.hypot(balls[ball].x - wallPos.x, balls[ball].y - wallPos.y) < balls[ball].radius){
+						var theta = Math.atan2((balls[ball].y - wallPos.y), (balls[ball].x - wallPos.x));
+						var overlap = balls[ball].radius - Math.hypot(balls[ball].x - wallPos.x, balls[ball].y - wallPos.y);
+						balls[ball].x += overlap * Math.cos(theta);
+						balls[ball].y += overlap * Math.sin(theta);
+					}
 				}
 			}
 		}
 	}
 
-	if(edgeCollision){
-		for(var ball in balls){
-			if(balls[ball].x < balls[ball].radius + canvasPos.x){balls[ball].x = balls[ball].radius + canvasPos.x; balls[ball].dx *= -elasticity;}
-			if(balls[ball].x > canvasWidth - balls[ball].radius + canvasPos.x){balls[ball].x = canvasWidth - balls[ball].radius + canvasPos.x; balls[ball].dx *= -elasticity;}
-			if(balls[ball].y < balls[ball].radius + canvasPos.y){balls[ball].y = balls[ball].radius + canvasPos.y; balls[ball].dy *= -elasticity;}
-			if(balls[ball].y > canvasHeight - balls[ball].radius + canvasPos.y){balls[ball].y = canvasHeight - balls[ball].radius + canvasPos.y; balls[ball].dy *= -elasticity;}
-		}
-	}
-	else if(wrapEdges){
-		for(var ball in balls){
-			if(balls[ball].x < -balls[ball].radius + canvasPos.x){balls[ball].x = canvasWidth + balls[ball].radius + canvasPos.x;}
-			if(balls[ball].x > canvasWidth + balls[ball].radius + canvasPos.x){balls[ball].x = -balls[ball].radius + canvasPos.x;}
-			if(balls[ball].y < -balls[ball].radius + canvasPos.y){balls[ball].y = canvasHeight + balls[ball].radius + canvasPos.y;}
-			if(balls[ball].y > canvasHeight + balls[ball].radius + canvasPos.y){balls[ball].y = -balls[ball].radius + canvasPos.y;}
-		}
-	}
-	else{
-		for(var ball in balls){
-			if(balls[ball].x < -balls[ball].radius + canvasPos.x){balls.splice(ball,1); continue;}
-			if(balls[ball].x > canvasWidth + balls[ball].radius + canvasPos.x){balls.splice(ball,1); continue;}
-			if(balls[ball].y < -balls[ball].radius + canvasPos.y){balls.splice(ball,1); continue;}
-			if(balls[ball].y > canvasHeight + balls[ball].radius + canvasPos.y){balls.splice(ball,1); continue;}
+	for(var ball in balls){
+		if(Number(ball) !== dragging){
+			if(edgeCollision){
+				if(balls[ball].x < balls[ball].radius + canvasPos.x){balls[ball].x = balls[ball].radius + canvasPos.x; balls[ball].dx *= -elasticity;}
+				if(balls[ball].x > canvasWidth - balls[ball].radius + canvasPos.x){balls[ball].x = canvasWidth - balls[ball].radius + canvasPos.x; balls[ball].dx *= -elasticity;}
+				if(balls[ball].y < balls[ball].radius + canvasPos.y){balls[ball].y = balls[ball].radius + canvasPos.y; balls[ball].dy *= -elasticity;}
+				if(balls[ball].y > canvasHeight - balls[ball].radius + canvasPos.y){balls[ball].y = canvasHeight - balls[ball].radius + canvasPos.y; balls[ball].dy *= -elasticity;}
+			}
+			else if(wrapEdges){
+				if(balls[ball].x < -balls[ball].radius + canvasPos.x){balls[ball].x = canvasWidth + balls[ball].radius + canvasPos.x;}
+				if(balls[ball].x > canvasWidth + balls[ball].radius + canvasPos.x){balls[ball].x = -balls[ball].radius + canvasPos.x;}
+				if(balls[ball].y < -balls[ball].radius + canvasPos.y){balls[ball].y = canvasHeight + balls[ball].radius + canvasPos.y;}
+				if(balls[ball].y > canvasHeight + balls[ball].radius + canvasPos.y){balls[ball].y = -balls[ball].radius + canvasPos.y;}
+			}
+			else{
+				if(balls[ball].x < -balls[ball].radius + canvasPos.x){balls.splice(ball,1); continue;}
+				if(balls[ball].x > canvasWidth + balls[ball].radius + canvasPos.x){balls.splice(ball,1); continue;}
+				if(balls[ball].y < -balls[ball].radius + canvasPos.y){balls.splice(ball,1); continue;}
+				if(balls[ball].y > canvasHeight + balls[ball].radius + canvasPos.y){balls.splice(ball,1); continue;}
+			}
 		}
 	}
 }
@@ -169,7 +173,7 @@ function drawObjects(){
 		ctx.globalAlpha = 1;
 		ctx.lineWidth = 1;
 		ctx.strokeStyle = balls[ball].color;
-		ctx.stroke();
+		if(Number(ball)!==dragging){ctx.stroke();}
 	}
 
 	ctx.strokeStyle = "black";
