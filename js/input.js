@@ -53,7 +53,7 @@ canvas.onmousedown = function(e){
 			}
 		}
 		if(e.button == 1){
-			standardRadiusBalls = 30;
+			standardRadiusBalls = 25;
 			if(scrolling != 0){clearTimeout(scrolling);}
         	scrolling = window.setTimeout(function(){scrolling = 0}, 250);
 		}
@@ -207,15 +207,31 @@ function checkKeyDown(e) {
     }
 
     if (e.keyCode == "82"){ //r
-    	var p1 = ctx.transformedPoint(0,0);
-		var p2 = ctx.transformedPoint(canvas.width,canvas.height);
-	    ctx.clearRect(p1.x,p1.y,p2.x-p1.x,p2.y-p1.y);
-    	ctx.setTransform(1, 0, 0, 1, 0, 0);
-    	canvasPos = ctx.transformedPoint(0,0);
-	    canvasWidth = ctx.transformedPoint(canvas.width,canvas.height).x - ctx.transformedPoint(0,0).x;
-	    canvasHeight = ctx.transformedPoint(canvas.width,canvas.height).y - ctx.transformedPoint(0,0).y;
-        balls = [];
-        walls = [];
+    	if(held.shiftKey == true){
+    		var fullCanvasP1 = ctx.transformedPoint(0,0);
+			var fullCanvasP2 = ctx.transformedPoint(canvas.width,canvas.height);
+			var canvasP1 = canvasPos;
+			var canvasP2 = {x:canvasP1.x+canvasWidth, y:canvasP1.y+canvasHeight};
+    		ctx.translate(fullCanvasP1.x-canvasP1.x,fullCanvasP1.y-canvasP1.y);
+	    	ctx.scale((fullCanvasP2.x-fullCanvasP1.x)/(canvasP2.x-canvasP1.x),(fullCanvasP2.y-fullCanvasP1.y)/(canvasP2.y-canvasP1.y));
+	    	fullCanvasP1 = ctx.transformedPoint(0,0);
+			fullCanvasP2 = ctx.transformedPoint(canvas.width,canvas.height);
+			canvasP1 = canvasPos;
+			canvasP2 = {x:canvasP1.x+canvasWidth, y:canvasP1.y+canvasHeight};
+	    	ctx.translate(fullCanvasP1.x-canvasP1.x,fullCanvasP1.y-canvasP1.y);
+	    	drawObjects();
+    	}
+    	else{
+	    	var p1 = ctx.transformedPoint(0,0);
+			var p2 = ctx.transformedPoint(canvas.width,canvas.height);
+		    ctx.clearRect(p1.x,p1.y,p2.x-p1.x,p2.y-p1.y);
+	    	ctx.setTransform(1, 0, 0, 1, 0, 0);
+	    	canvasPos = ctx.transformedPoint(0,0);
+		    canvasWidth = ctx.transformedPoint(canvas.width,canvas.height).x - ctx.transformedPoint(0,0).x;
+		    canvasHeight = ctx.transformedPoint(canvas.width,canvas.height).y - ctx.transformedPoint(0,0).y;
+	        balls = [];
+	        walls = [];
+	    }
     }
     if (e.keyCode == "67"){ //c
         toggle("ballCollision");
